@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biomechanics Socratic Game</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-dark: #0c447c;
+    --blue-mid: #185fa5;
+    --blue-light: #e6f1fb;
+    --blue-border: #b5d4f4;
+    --teal-light: #e1f5ee;
+    --teal-dark: #085041;
+    --amber-light: #faeeda;
+    --amber-dark: #633806;
+    --coral-light: #faece7;
+    --coral-dark: #712b13;
+    --gray-100: #f5f5f4;
+    --gray-200: #e8e7e3;
+    --gray-400: #888780;
+    --gray-700: #3a3a38;
+    --gray-900: #1a1a18;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: var(--font);
+    background: #fff;
+    color: var(--gray-900);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .header {
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 0.5px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--blue-light);
+    border: 0.5px solid var(--blue-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue-dark);
+    flex-shrink: 0;
+  }
+
+  .header-text { flex: 1; }
+
+  .header-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-900);
+    line-height: 1.2;
+  }
+
+  .header-sub {
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-top: 1px;
+  }
+
+  /* Progress */
+  .progress-bar-wrap {
+    padding: 0.6rem 1.25rem 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 3px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--blue-mid);
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.5s ease;
+  }
+
+  .progress-label {
+    font-size: 11px;
+    color: var(--gray-400);
+    white-space: nowrap;
+    min-width: 36px;
+    text-align: right;
+  }
+
+  /* Topic selector */
+  .topic-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 0.75rem 1.25rem;
+    scrollbar-width: none;
+    border-bottom: 0.5px solid var(--gray-200);
+  }
+
+  .topic-scroll::-webkit-scrollbar { display: none; }
+
+  .topic-chip {
+    flex-shrink: 0;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 0.5px solid var(--gray-200);
+    background: #fff;
+    color: var(--gray-700);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+
+  .topic-chip:active { transform: scale(0.96); }
+
+  .topic-chip.active {
+    background: var(--blue-light);
+    border-color: var(--blue-border);
+    color: var(--blue-dark);
+  }
+
+  /* Case banner */
+  .case-banner {
+    margin: 0.75rem 1.25rem;
+    padding: 0.875rem 1rem;
+    background: var(--gray-100);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--blue-mid);
+  }
+
+  .case-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gray-400);
+    margin-bottom: 5px;
+  }
+
+  .case-text {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--gray-700);
+  }
+
+  /* Chat */
+  .chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 260px;
+    max-height: calc(100vh - 380px);
+  }
+
+  .msg {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .msg.student { flex-direction: row-reverse; }
+
+  .msg-av {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+
+  .msg.prof .msg-av {
+    background: var(--blue-light);
+    color: var(--blue-dark);
+    border: 0.5px solid var(--blue-border);
+  }
+
+  .msg.student .msg-av {
+    background: var(--teal-light);
+    color: var(--teal-dark);
+  }
+
+  .msg-body { max-width: 82%; display: flex; flex-direction: column; gap: 4px; }
+
+  .msg.student .msg-body { align-items: flex-end; }
+
+  .feedback-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    display: inline-block;
+    width: fit-content;
+  }
+
+  .tag-good { background: var(--teal-light); color: var(--teal-dark); }
+  .tag-partial { background: var(--amber-light); color: var(--amber-dark); }
+  .tag-rethink { background: var(--coral-light); color: var(--coral-dark); }
+  .tag-synthesis { background: var(--blue-light); color: var(--blue-dark); }
+
+  .msg-bubble {
+    padding: 0.625rem 0.875rem;
+    font-size: 14px;
+    line-height: 1.6;
+    border-radius: 14px;
+  }
+
+  .msg.prof .msg-bubble {
+    background: var(--gray-100);
+    color: var(--gray-900);
+    border-bottom-left-radius: 4px;
+  }
+
+  .msg.student .msg-bubble {
+    background: var(--blue-light);
+    color: var(--blue-dark);
+    border-bottom-right-radius: 4px;
+  }
+
+  /* Typing dots */
+  .typing { display: flex; align-items: center; gap: 5px; padding: 12px 14px; }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gray-400);
+    animation: pulse 1.2s infinite ease-in-out;
+  }
+
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes pulse {
+    0%, 60%, 100% { opacity: 0.3; transform: scale(1); }
+    30% { opacity: 1; transform: scale(1.2); }
+  }
+
+  /* Input */
+  .input-area {
+    padding: 0.75rem 1.25rem;
+    border-top: 0.5px solid var(--gray-200);
+    background: #fff;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  textarea {
+    flex: 1;
+    border: 0.5px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.75rem;
+    font-size: 14px;
+    font-family: var(--font);
+    resize: none;
+    line-height: 1.5;
+    color: var(--gray-900);
+    background: var(--gray-100);
+    min-height: 44px;
+    max-height: 96px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  textarea:focus { border-color: var(--blue-mid); background: #fff; }
+
+  .send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--gray-200);
+    background: var(--blue-mid);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+
+  .send-btn:active { background: var(--blue-dark); transform: scale(0.96); }
+  .send-btn:disabled { background: var(--gray-200); cursor: not-allowed; transform: none; }
+
+  .send-btn svg { width: 18px; height: 18px; }
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+  }
+
+  .hint-btn, .new-btn {
+    font-size: 12px;
+    color: var(--gray-400);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .hint-btn:active, .new-btn:active { color: var(--gray-700); }
+
+  /* Branding footer */
+  .branding {
+    text-align: center;
+    padding: 0.5rem;
+    font-size: 11px;
+    color: var(--gray-400);
+    border-top: 0.5px solid var(--gray-200);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-avatar">PJ</div>
+  <div class="header-text">
+    <div class="header-title">Prof. Javed — Biomechanics</div>
+    <div class="header-sub">Socratic mode &nbsp;·&nbsp; earn each answer</div>
+  </div>
+</div>
+
+<div class="progress-bar-wrap">
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-label" id="progressLabel">0 / 5</div>
+</div>
+
+<div class="topic-scroll" id="topicScroll"></div>
+
+<div class="case-banner">
+  <div class="case-label">Clinical scenario</div>
+  <div class="case-text" id="caseText">Loading...</div>
+</div>
+
+<div class="chat-area" id="chatArea"></div>
+
+<div class="input-area">
+  <div class="input-row">
+    <textarea id="inputBox" placeholder="Type your reasoning..." rows="2"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendAnswer()" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </button>
+  </div>
+  <div class="meta-row">
+    <button class="hint-btn" onclick="getHint()">Need a hint?</button>
+    <button class="new-btn" onclick="restartSession()">New case</button>
+  </div>
+</div>
+
+<div class="branding">biomechanics game &nbsp;·&nbsp; dept. of physiotherapy, integral university</div>
+
+<script>
+const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages';
+
+const TOPICS = {
+  knee: {
+    label: 'Knee',
+    case: 'A 28-year-old footballer reports anterior knee pain worse going downstairs and squatting below 90 degrees. No trauma. Started 3 weeks ago after increasing training load. Patella tracks slightly laterally on active extension.',
+    focus: 'patellofemoral biomechanics, Q-angle, VMO-VL force balance, and patellar tracking mechanism'
+  },
+  shoulder: {
+    label: 'Shoulder',
+    case: 'A 35-year-old swimmer has pain on shoulder flexion beyond 90 degrees and during freestyle follow-through. Positive Neer and Hawkins-Kennedy tests. Scapula shows early upward rotation lag on elevation.',
+    focus: 'subacromial space biomechanics, scapulohumeral rhythm, rotator cuff force couple, and superior migration of the humeral head'
+  },
+  gait: {
+    label: 'Gait',
+    case: 'A 45-year-old post-stroke patient shows a Trendelenburg gait on the left during mid-stance. The left hip drops noticeably. There is also an ipsilateral trunk lean. No pain reported.',
+    focus: 'hip abductor biomechanics in single leg stance, frontal plane stability, and the compensatory trunk lean mechanism'
+  },
+  spine: {
+    label: 'Lumbar spine',
+    case: 'A 40-year-old office worker has central low back pain after prolonged sitting, which reduces on walking. MRI shows L4-L5 disc bulge. He flexes his lumbar spine when picking objects from the floor.',
+    focus: 'lumbar disc mechanics, intradiscal pressure in flexion vs neutral, and posterior element loading'
+  },
+  hip: {
+    label: 'Hip',
+    case: 'A 60-year-old post total hip replacement patient walks with a lateral trunk lean toward the operated side during stance. The surgeon reports a good outcome with no prosthesis issues.',
+    focus: 'hip abductor lever arm, joint reaction force calculation, body weight moment, and the compensatory lurch mechanism'
+  },
+  ankle: {
+    label: 'Ankle',
+    case: 'A 22-year-old basketball player has had three lateral ankle sprains in two years. He now reports functional instability and fear of landing from jumps. No bony pathology on imaging.',
+    focus: 'lateral ligament complex mechanics, subtalar joint coupling, proprioceptive deficits, and functional ankle instability'
+  }
+};
+
+let currentTopic = 'knee';
+let history = [];
+let depth = 0;
+let busy = false;
+
+function systemPrompt() {
+  const t = TOPICS[currentTopic];
+  return `You are Prof. Javed, a biomechanics professor who uses strict Socratic method. You never give answers directly. You only ask questions that force the student to reason forward one step at a time.
+
+CLINICAL CASE:
+${t.case}
+
+TOPIC FOCUS: ${t.focus}
+
+RULES:
+1. Begin every response with exactly one of these tags on its own line: [GOOD], [PARTIAL], [NEEDS_DIGGING], or [SYNTHESIS]
+2. [GOOD] = student reasoning is mechanically sound and goes deep. Probe deeper.
+3. [PARTIAL] = correct direction but shallow. Press for the mechanism.
+4. [NEEDS_DIGGING] = missing the key concept. Redirect with a question, never say "wrong".
+5. [SYNTHESIS] = use only after 5 [GOOD] responses. Tie the full mechanical picture together in 3 to 4 sentences. This ends the session.
+6. Ask ONE question per response. Never two.
+7. Keep each response under 110 words.
+8. Never say: "Great question", "Exactly", "Good job", "You're right", "Correct".
+9. Use clinical language: forces, vectors, moment arms, load, chain reaction.
+10. Your OPENING question (first message) must challenge what the student assumes they already know. Be provocative.`;
+}
+
+function openingUserMsg() {
+  return 'Begin the session. Ask your single opening question only. Output the [GOOD] tag first, then your question. Nothing else.';
+}
+
+function buildTopics() {
+  const scroll = document.getElementById('topicScroll');
+  Object.keys(TOPICS).forEach(key => {
+    const btn = document.createElement('button');
+    btn.className = 'topic-chip' + (key === currentTopic ? ' active' : '');
+    btn.textContent = TOPICS[key].label;
+    btn.onclick = () => {
+      document.querySelectorAll('.topic-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTopic = key;
+      restartSession();
+    };
+    scroll.appendChild(btn);
+  });
+}
+
+function addMsg(role, text, tagType) {
+  const area = document.getElementById('chatArea');
+
+  const msg = document.createElement('div');
+  msg.className = 'msg ' + role;
+
+  const av = document.createElement('div');
+  av.className = 'msg-av';
+  av.textContent = role === 'prof' ? 'PJ' : 'S';
+
+  const body = document.createElement('div');
+  body.className = 'msg-body';
+
+  if (tagType) {
+    const tag = document.createElement('div');
+    tag.className = 'feedback-tag ' + tagClass(tagType);
+    tag.textContent = tagLabel(tagType);
+    body.appendChild(tag);
+  }
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.textContent = text;
+  body.appendChild(bubble);
+
+  msg.appendChild(av);
+  msg.appendChild(body);
+  area.appendChild(msg);
+  area.scrollTop = area.scrollHeight;
+}
+
+function tagClass(t) {
+  if (t === 'GOOD') return 'tag-good';
+  if (t === 'PARTIAL') return 'tag-partial';
+  if (t === 'NEEDS_DIGGING') return 'tag-rethink';
+  if (t === 'SYNTHESIS') return 'tag-synthesis';
+  return '';
+}
+
+function tagLabel(t) {
+  if (t === 'GOOD') return 'Good reasoning';
+  if (t === 'PARTIAL') return 'Dig deeper';
+  if (t === 'NEEDS_DIGGING') return 'Rethink this';
+  if (t === 'SYNTHESIS') return 'Synthesis';
+  return '';
+}
+
+function addTyping() {
+  const area = document.getElementById('chatArea');
+  const msg = document.createElement('div');
+  msg.className = 'msg prof';
+  msg.id = 'typing';
+
+  const av = document.createElement('div');
+  av.className = 'msg-av';
+  av.textContent = 'PJ';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble typing';
+  bubble.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+
+  msg.appendChild(av);
+  msg.appendChild(bubble);
+  area.appendChild(msg);
+  area.scrollTop = area.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typing');
+  if (el) el.remove();
+}
+
+function updateProgress() {
+  const pct = Math.min((depth / 5) * 100, 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = Math.min(depth, 5) + ' / 5';
+}
+
+function parseReply(raw) {
+  const lines = raw.trim().split('\n');
+  const first = lines[0].trim();
+  let tag = 'PARTIAL';
+  let text = raw.trim();
+
+  if (first.startsWith('[GOOD]')) { tag = 'GOOD'; text = lines.slice(1).join('\n').trim(); }
+  else if (first.startsWith('[PARTIAL]')) { tag = 'PARTIAL'; text = lines.slice(1).join('\n').trim(); }
+  else if (first.startsWith('[NEEDS_DIGGING]')) { tag = 'NEEDS_DIGGING'; text = lines.slice(1).join('\n').trim(); }
+  else if (first.startsWith('[SYNTHESIS]')) { tag = 'SYNTHESIS'; text = lines.slice(1).join('\n').trim(); }
+
+  return { tag, text };
+}
+
+async function callAPI(userMsg) {
+  const msgs = [...history];
+  msgs.push({ role: 'user', content: userMsg });
+
+  const res = await fetch(ANTHROPIC_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1000,
+      system: systemPrompt(),
+      messages: msgs
+    })
+  });
+
+  if (!res.ok) throw new Error('API error ' + res.status);
+
+  const data = await res.json();
+  const reply = data.content.map(b => b.text || '').join('');
+  history.push({ role: 'user', content: userMsg });
+  history.push({ role: 'assistant', content: reply });
+  return reply;
+}
+
+async function startSession() {
+  depth = 0;
+  history = [];
+  updateProgress();
+  document.getElementById('chatArea').innerHTML = '';
+  document.getElementById('caseText').textContent = TOPICS[currentTopic].case;
+  document.getElementById('sendBtn').disabled = true;
+  busy = true;
+  addTyping();
+
+  try {
+    const reply = await callAPI(openingUserMsg());
+    removeTyping();
+    const { text } = parseReply(reply);
+    addMsg('prof', text, null);
+  } catch(e) {
+    removeTyping();
+    addMsg('prof', 'Connection error. Check your network and refresh.', null);
+  }
+
+  busy = false;
+  document.getElementById('sendBtn').disabled = false;
+}
+
+async function sendAnswer() {
+  if (busy) return;
+  const box = document.getElementById('inputBox');
+  const val = box.value.trim();
+  if (!val) return;
+
+  box.value = '';
+  addMsg('student', val, null);
+  busy = true;
+  document.getElementById('sendBtn').disabled = true;
+  addTyping();
+
+  try {
+    const reply = await callAPI(val);
+    removeTyping();
+    const { tag, text } = parseReply(reply);
+    if (tag === 'GOOD' || tag === 'SYNTHESIS') depth++;
+    updateProgress();
+    addMsg('prof', text, tag);
+
+    if (tag === 'SYNTHESIS') {
+      document.getElementById('sendBtn').disabled = true;
+      document.getElementById('inputBox').placeholder = 'Session complete. Start a new case.';
+      busy = true;
+    }
+  } catch(e) {
+    removeTyping();
+    addMsg('prof', 'Connection error. Try again.', null);
+  }
+
+  if (!busy || depth >= 5) {
+    busy = false;
+    if (depth < 5) document.getElementById('sendBtn').disabled = false;
+  }
+}
+
+async function getHint() {
+  if (busy) return;
+  busy = true;
+  document.getElementById('sendBtn').disabled = true;
+  addTyping();
+
+  try {
+    const reply = await callAPI('I need a directional hint. Do not give me the answer. Give me one question that points toward the mechanism without revealing it. Tag it [PARTIAL].');
+    removeTyping();
+    const { text } = parseReply(reply);
+    addMsg('prof', '(Hint) ' + text, null);
+  } catch(e) {
+    removeTyping();
+  }
+
+  busy = false;
+  document.getElementById('sendBtn').disabled = false;
+}
+
+function restartSession() {
+  document.getElementById('inputBox').placeholder = 'Type your reasoning...';
+  startSession();
+}
+
+document.getElementById('inputBox').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAnswer(); }
+});
+
+buildTopics();
+startSession();
+</script>
+</body>
+</html>
