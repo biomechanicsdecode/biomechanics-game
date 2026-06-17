@@ -395,6 +395,11 @@
 
 <script>
 const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages';
+let API_KEY = localStorage.getItem('bm_api_key') || '';
+if (!API_KEY) {
+  API_KEY = prompt('Enter your Anthropic API key to use this game:') || '';
+  if (API_KEY) localStorage.setItem('bm_api_key', API_KEY);
+}
 
 const TOPICS = {
   knee: {
@@ -574,7 +579,7 @@ async function callAPI(userMsg) {
 
   const res = await fetch(ANTHROPIC_API, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
       max_tokens: 1000,
