@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Biomechanics Socratic Game</title>
+<title>Biomechanics Game</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -118,7 +118,7 @@
     overflow-x: auto;
     padding: 0.75rem 1.25rem;
     scrollbar-width: none;
-    border-bottom: 0.5px solid var(--gray-200);
+    border-bottom: 0.5px solid var(--gray-200);h
   }
 
   .topic-scroll::-webkit-scrollbar { display: none; }
@@ -202,7 +202,7 @@
     margin-top: 2px;
   }
 
-  .msg.prof .msg-av {
+  .msg.ai .msg-av {
     background: var(--blue-light);
     color: var(--blue-dark);
     border: 0.5px solid var(--blue-border);
@@ -238,7 +238,7 @@
     border-radius: 14px;
   }
 
-  .msg.prof .msg-bubble {
+  .msg.ai .msg-bubble {
     background: var(--gray-100);
     color: var(--gray-900);
     border-bottom-left-radius: 4px;
@@ -354,8 +354,8 @@
 <div class="header">
   <div class="header-avatar">PJ</div>
   <div class="header-text">
-    <div class="header-title">Prof. Javed — Biomechanics</div>
-    <div class="header-sub">Socratic mode &nbsp;·&nbsp; earn each answer</div>
+    <div class="header-title">AI Tutor — Biomechanics</div>
+    <div class="header-sub">mode &nbsp;·&nbsp; earn each answer</div>
   </div>
 </div>
 
@@ -436,7 +436,7 @@ let busy = false;
 
 function systemPrompt() {
   const t = TOPICS[currentTopic];
-  return `You are Prof. Javed, a biomechanics professor who uses strict Socratic method. You never give answers directly. You only ask questions that force the student to reason forward one step at a time.
+  return `You are AI Tutor, a biomechanics professor who uses strict method. You never give answers directly. You only ask questions that force the student to reason forward one step at a time.
 
 CLINICAL CASE:
 ${t.case}
@@ -484,7 +484,7 @@ function addMsg(role, text, tagType) {
 
   const av = document.createElement('div');
   av.className = 'msg-av';
-  av.textContent = role === 'prof' ? 'PJ' : 'S';
+  av.textContent = role === 'ai' ? 'PJ' : 'S';
 
   const body = document.createElement('div');
   body.className = 'msg-body';
@@ -526,7 +526,7 @@ function tagLabel(t) {
 function addTyping() {
   const area = document.getElementById('chatArea');
   const msg = document.createElement('div');
-  msg.className = 'msg prof';
+  msg.className = 'msg ai';
   msg.id = 'typing';
 
   const av = document.createElement('div');
@@ -606,10 +606,10 @@ async function startSession() {
     const reply = await callAPI(openingUserMsg());
     removeTyping();
     const { text } = parseReply(reply);
-    addMsg('prof', text, null);
+    addMsg('ai', text, null);
   } catch(e) {
     removeTyping();
-    addMsg('prof', 'Connection error. Check your network and refresh.', null);
+    addMsg('ai', 'Connection error. Check your network and refresh.', null);
   }
 
   busy = false;
@@ -634,7 +634,7 @@ async function sendAnswer() {
     const { tag, text } = parseReply(reply);
     if (tag === 'GOOD' || tag === 'SYNTHESIS') depth++;
     updateProgress();
-    addMsg('prof', text, tag);
+    addMsg('ai', text, tag);
 
     if (tag === 'SYNTHESIS') {
       document.getElementById('sendBtn').disabled = true;
@@ -643,7 +643,7 @@ async function sendAnswer() {
     }
   } catch(e) {
     removeTyping();
-    addMsg('prof', 'Connection error. Try again.', null);
+    addMsg('ai', 'Connection error. Try again.', null);
   }
 
   if (!busy || depth >= 5) {
@@ -662,7 +662,7 @@ async function getHint() {
     const reply = await callAPI('I need a directional hint. Do not give me the answer. Give me one question that points toward the mechanism without revealing it. Tag it [PARTIAL].');
     removeTyping();
     const { text } = parseReply(reply);
-    addMsg('prof', '(Hint) ' + text, null);
+    addMsg('ai', '(Hint) ' + text, null);
   } catch(e) {
     removeTyping();
   }
