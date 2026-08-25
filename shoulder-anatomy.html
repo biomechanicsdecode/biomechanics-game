@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shoulder Surface Anatomy</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-dark: #0c447c;
+    --blue-mid: #185fa5;
+    --blue-light: #e6f1fb;
+    --blue-border: #b5d4f4;
+    --teal-light: #e1f5ee;
+    --teal-mid: #0f8a6e;
+    --teal-dark: #085041;
+    --amber-light: #faeeda;
+    --amber-dark: #633806;
+    --coral-light: #faece7;
+    --coral-mid: #c8532f;
+    --coral-dark: #712b13;
+    --gray-100: #f5f5f4;
+    --gray-200: #e8e7e3;
+    --gray-300: #d6d4cd;
+    --gray-400: #888780;
+    --gray-700: #3a3a38;
+    --gray-900: #1a1a18;
+    --figure-fill: #efe6d8;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: var(--font);
+    background: #fff;
+    color: var(--gray-900);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .header {
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 0.5px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .header-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--blue-light);
+    border: 0.5px solid var(--blue-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue-dark);
+    flex-shrink: 0;
+  }
+
+  .header-text { flex: 1; min-width: 140px; }
+
+  .header-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-900);
+    line-height: 1.2;
+  }
+
+  .header-sub {
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-top: 1px;
+  }
+
+  .header-links { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .header-link {
+    font-size: 11.5px;
+    color: var(--blue-mid);
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 6px 10px;
+    border-radius: 20px;
+    border: 0.5px solid var(--blue-border);
+    background: var(--blue-light);
+  }
+
+  .header-link:active { transform: scale(0.96); }
+
+  /* Chip rows */
+  .chip-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 0.75rem 1.25rem 0;
+  }
+
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 0.5px solid var(--gray-200);
+    background: #fff;
+    color: var(--gray-700);
+    cursor: pointer;
+  }
+
+  .chip:active { transform: scale(0.96); }
+
+  .chip.active {
+    background: var(--blue-light);
+    border-color: var(--blue-border);
+    color: var(--blue-dark);
+  }
+
+  .chip .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-bone { background: var(--blue-mid); }
+  .dot-soft { background: var(--teal-mid); }
+
+  /* Figure */
+  .figure-section {
+    margin: 0.9rem 1.25rem 0;
+    padding: 0.9rem;
+    background: var(--gray-100);
+    border-radius: var(--radius-md);
+    position: relative;
+  }
+
+  .view-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gray-400);
+    margin-bottom: 6px;
+  }
+
+  .figure-wrap {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .figure-wrap svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .pin {
+    cursor: pointer;
+  }
+
+  .pin circle.pin-bg {
+    stroke: #fff;
+    stroke-width: 2;
+    transition: r 0.12s ease;
+  }
+
+  .pin text {
+    font-size: 11px;
+    font-weight: 700;
+    fill: #fff;
+    text-anchor: middle;
+    dominant-baseline: central;
+    pointer-events: none;
+    font-family: var(--font);
+  }
+
+  .pin.selected circle.pin-bg { stroke: var(--gray-900); r: 13; }
+  .pin.correct circle.pin-bg { fill: var(--teal-mid) !important; }
+  .pin.wrong circle.pin-bg { fill: var(--coral-mid) !important; }
+  .pin.dim { opacity: 0.35; }
+
+  /* Info card */
+  .info-card {
+    margin: 0.75rem 1.25rem 0;
+    padding: 0.875rem 1rem;
+    background: #fff;
+    border: 0.5px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--blue-mid);
+    display: none;
+  }
+
+  .info-card.open { display: block; }
+
+  .info-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .info-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gray-900);
+  }
+
+  .info-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .tag-bone { background: var(--blue-light); color: var(--blue-dark); }
+  .tag-soft { background: var(--teal-light); color: var(--teal-dark); }
+
+  .info-note {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--gray-700);
+  }
+
+  .info-placeholder {
+    font-size: 12.5px;
+    color: var(--gray-400);
+    text-align: center;
+    padding: 0.4rem 0;
+  }
+
+  /* Quiz */
+  .quiz-bar {
+    margin: 0.9rem 1.25rem 0;
+    display: none;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .quiz-bar.open { display: flex; }
+
+  .quiz-track {
+    flex: 1;
+    height: 3px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .quiz-fill {
+    height: 100%;
+    background: var(--blue-mid);
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
+  .quiz-label {
+    font-size: 11px;
+    color: var(--gray-400);
+    white-space: nowrap;
+  }
+
+  .quiz-prompt {
+    margin: 0.6rem 1.25rem 0;
+    padding: 0.75rem 1rem;
+    background: var(--blue-light);
+    border-radius: var(--radius-md);
+    font-size: 13.5px;
+    color: var(--blue-dark);
+    display: none;
+  }
+
+  .quiz-prompt.open { display: block; }
+
+  .quiz-prompt b { font-weight: 700; }
+
+  .quiz-result {
+    margin: 0.9rem 1.25rem 0;
+    padding: 1.1rem;
+    background: var(--teal-light);
+    border-radius: var(--radius-md);
+    text-align: center;
+    display: none;
+  }
+
+  .quiz-result.open { display: block; }
+
+  .quiz-result-score {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--teal-dark);
+    margin-bottom: 4px;
+  }
+
+  .quiz-result-sub {
+    font-size: 12.5px;
+    color: var(--gray-700);
+    margin-bottom: 12px;
+  }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 0.9rem 1.25rem 0;
+  }
+
+  .btn {
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 0.5rem 0.9rem;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--gray-200);
+    background: #fff;
+    color: var(--gray-700);
+    cursor: pointer;
+  }
+
+  .btn:active { transform: scale(0.97); }
+
+  .btn.primary {
+    background: var(--blue-mid);
+    border-color: var(--blue-mid);
+    color: #fff;
+  }
+
+  .legend-note {
+    margin: 0.9rem 1.25rem 0;
+    font-size: 11.5px;
+    color: var(--gray-400);
+    line-height: 1.5;
+  }
+
+  /* Branding footer */
+  .branding {
+    text-align: center;
+    padding: 0.5rem;
+    font-size: 11px;
+    color: var(--gray-400);
+    border-top: 0.5px solid var(--gray-200);
+    margin-top: auto;
+  }
+
+  .spacer { height: 1.25rem; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-avatar">SA</div>
+  <div class="header-text">
+    <div class="header-title">Shoulder Surface Anatomy</div>
+    <div class="header-sub">palpation landmarks</div>
+  </div>
+  <div class="header-links">
+    <a class="header-link" href="index.html">🧠 Biomechanics game</a>
+    <a class="header-link" href="timetable.html">🗓 Timetable builder</a>
+  </div>
+</div>
+
+<div class="chip-row" id="viewChips"></div>
+<div class="chip-row" id="modeChips"></div>
+<div class="chip-row" id="filterChips"></div>
+
+<div class="figure-section">
+  <div class="view-label" id="viewLabel">Anterior view</div>
+  <div class="figure-wrap" id="figureWrap"></div>
+</div>
+
+<div class="info-card" id="infoCard">
+  <div class="info-card-top">
+    <div class="info-name" id="infoName"></div>
+    <div class="info-tag" id="infoTag"></div>
+  </div>
+  <div class="info-note" id="infoNote"></div>
+</div>
+<div class="info-card open" id="infoPlaceholder">
+  <div class="info-placeholder">Tap a numbered pin on the diagram to see what it is.</div>
+</div>
+
+<div class="quiz-bar" id="quizBar">
+  <div class="quiz-track"><div class="quiz-fill" id="quizFill"></div></div>
+  <div class="quiz-label" id="quizLabel">0 / 12</div>
+</div>
+<div class="quiz-prompt" id="quizPrompt"></div>
+
+<div class="quiz-result" id="quizResult">
+  <div class="quiz-result-score" id="quizScore"></div>
+  <div class="quiz-result-sub">landmarks identified correctly</div>
+  <button class="btn primary" onclick="startQuiz()">Try again</button>
+</div>
+
+<div class="btn-row" id="quizControls" style="display:none;">
+  <button class="btn" onclick="startQuiz()">🔀 Shuffle / restart quiz</button>
+</div>
+
+<div class="legend-note">Bony landmarks in blue, soft-tissue landmarks in teal. Diagram is schematic — positions approximate typical surface projections, not to exact scale.</div>
+
+<div class="spacer"></div>
+<div class="branding">shoulder surface anatomy &nbsp;·&nbsp; dept. of physiotherapy, integral university</div>
+
+<script>
+const SVGNS = 'http://www.w3.org/2000/svg';
+
+const VIEWS = {
+  anterior: {
+    label: 'Anterior view',
+    lines: [
+      'M60,72 Q125,48 195,80',
+      'M150,92 C160,140 168,180 175,235',
+      'M212,150 L212,255'
+    ],
+    landmarks: [
+      { id:'a1', n:1, name:'Sternoclavicular joint', type:'bone', x:32, y:78, note:'Only bony articulation between the axial skeleton and the upper limb; palpate for prominence or step-off after trauma.' },
+      { id:'a2', n:2, name:'Clavicle (shaft)', type:'bone', x:108, y:66, note:"Subcutaneous along its entire length — the classic S-shaped bone, most commonly fractured at the junction of its middle and outer thirds." },
+      { id:'a3', n:3, name:'Acromioclavicular (AC) joint', type:'bone', x:186, y:76, note:'Palpate just lateral to the clavicle\'s lateral end; tenderness or a step-off suggests AC sprain or separation.' },
+      { id:'a4', n:4, name:'Coracoid process', type:'bone', x:150, y:107, note:'Deep to the deltopectoral groove, about 2 cm below the clavicle; attachment for pec minor, coracobrachialis, and the short head of biceps.' },
+      { id:'a5', n:5, name:'Acromion, anterior angle', type:'bone', x:206, y:92, note:"The \"point of the shoulder\"; marks the lateral extent of the scapular spine and forms the roof of the subacromial space." },
+      { id:'a6', n:6, name:'Greater tubercle of humerus', type:'bone', x:216, y:138, note:'Lateral to the bicipital groove, just under the deltoid; insertion site for supraspinatus, infraspinatus, and teres minor.' },
+      { id:'a7', n:7, name:'Lesser tubercle of humerus', type:'bone', x:196, y:150, note:'Medial wall of the bicipital groove; subscapularis inserts here — internally rotate the arm to bring it forward under your fingers.' },
+      { id:'a8', n:8, name:'Bicipital (intertubercular) groove', type:'bone', x:212, y:180, note:'Runs between the greater and lesser tubercles; houses the long head of biceps tendon — a common site of tendinopathy.' },
+      { id:'a9', n:9, name:'Deltoid, anterior fibers', type:'soft', x:186, y:126, note:'Arises from the lateral third of the clavicle; flexes and medially rotates the humerus.' },
+      { id:'a10', n:10, name:'Pectoralis major, clavicular head', type:'soft', x:88, y:150, note:'Forms the anterior axillary fold; flexes and horizontally adducts the humerus.' },
+      { id:'a11', n:11, name:'Biceps brachii, long head', type:'soft', x:225, y:228, note:"Palpable in the midline of the anterior arm; reproduces pain on Speed's and Yergason's tests when the tendon is irritated." },
+      { id:'a12', n:12, name:'Anterior axillary fold', type:'soft', x:140, y:192, note:'Formed by the lower border of pectoralis major; palpate here to assess pec major integrity and axillary contents.' }
+    ]
+  },
+  posterior: {
+    label: 'Posterior view',
+    lines: [
+      'M68,108 L192,92',
+      'M66,112 L58,232',
+      'M140,178 L128,220'
+    ],
+    landmarks: [
+      { id:'p1', n:1, name:'Spine of scapula', type:'bone', x:130, y:98, note:'A subcutaneous ridge running from the medial border to the acromion; divides the supraspinous and infraspinous fossae.' },
+      { id:'p2', n:2, name:'Acromion, posterior angle', type:'bone', x:198, y:90, note:'Continuous with the lateral end of the scapular spine; palpate the flat "table-top" surface here.' },
+      { id:'p3', n:3, name:'Superior angle of scapula', type:'bone', x:72, y:92, note:'At the medial end of the spine, roughly level with T2; levator scapulae attaches here.' },
+      { id:'p4', n:4, name:'Medial (vertebral) border of scapula', type:'bone', x:60, y:170, note:'Runs from superior to inferior angle, about 5 cm from the spinous processes; winging here signals long thoracic or spinal accessory nerve palsy.' },
+      { id:'p5', n:5, name:'Inferior angle of scapula', type:'bone', x:72, y:232, note:'Level with T7; the easiest scapular landmark to grip when assessing scapular upward/downward rotation.' },
+      { id:'p6', n:6, name:'Lateral (axillary) border of scapula', type:'bone', x:136, y:198, note:'Thick border running up toward the glenoid; teres major and teres minor lie along it.' },
+      { id:'p7', n:7, name:'Deltoid, posterior fibers', type:'soft', x:196, y:150, note:'Arises from the scapular spine; extends and laterally rotates the humerus.' },
+      { id:'p8', n:8, name:'Infraspinatus', type:'soft', x:118, y:148, note:'Fills the infraspinous fossa below the scapular spine; resisted external rotation with the elbow at the side reproduces pain here.' },
+      { id:'p9', n:9, name:'Teres minor', type:'soft', x:128, y:182, note:'A narrow strip along the upper lateral border, just below infraspinatus; also an external rotator and part of the rotator cuff.' },
+      { id:'p10', n:10, name:'Teres major', type:'soft', x:108, y:208, note:"Below teres minor along the lateral border; the \"lat's little helper\" — extends and medially rotates the humerus." },
+      { id:'p11', n:11, name:'Lower trapezius (near scapular spine)', type:'soft', x:88, y:108, note:'Fibers converge onto the medial spine; weakness here contributes to a downwardly-rotated, winged scapula.' },
+      { id:'p12', n:12, name:'Posterior axillary fold / latissimus dorsi', type:'soft', x:98, y:222, note:'Formed by teres major and latissimus dorsi; palpate it as the patient adducts the arm against resistance.' }
+    ]
+  }
+};
+
+let currentView = 'anterior';
+let currentMode = 'explore';
+let currentFilter = 'all';
+let selectedPinId = null;
+
+let quizOrder = [];
+let quizIndex = 0;
+let quizScore = 0;
+let quizActive = false;
+
+function buildFigureBase(group) {
+  const chest = document.createElementNS(SVGNS, 'rect');
+  chest.setAttribute('x', -20); chest.setAttribute('y', 140);
+  chest.setAttribute('width', 200); chest.setAttribute('height', 200);
+  chest.setAttribute('rx', 50); chest.setAttribute('fill', 'var(--figure-fill)');
+  group.appendChild(chest);
+
+  const neck = document.createElementNS(SVGNS, 'rect');
+  neck.setAttribute('x', 40); neck.setAttribute('y', -20);
+  neck.setAttribute('width', 70); neck.setAttribute('height', 120);
+  neck.setAttribute('rx', 25); neck.setAttribute('fill', 'var(--figure-fill)');
+  group.appendChild(neck);
+
+  const shoulder = document.createElementNS(SVGNS, 'ellipse');
+  shoulder.setAttribute('cx', 170); shoulder.setAttribute('cy', 120);
+  shoulder.setAttribute('rx', 70); shoulder.setAttribute('ry', 65);
+  shoulder.setAttribute('fill', 'var(--figure-fill)');
+  group.appendChild(shoulder);
+
+  const arm = document.createElementNS(SVGNS, 'rect');
+  arm.setAttribute('x', 190); arm.setAttribute('y', 110);
+  arm.setAttribute('width', 100); arm.setAttribute('height', 220);
+  arm.setAttribute('rx', 45); arm.setAttribute('fill', 'var(--figure-fill)');
+  group.appendChild(arm);
+}
+
+function renderFigure() {
+  const wrap = document.getElementById('figureWrap');
+  wrap.innerHTML = '';
+  const view = VIEWS[currentView];
+
+  const svg = document.createElementNS(SVGNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 340 320');
+
+  const figureGroup = document.createElementNS(SVGNS, 'g');
+  figureGroup.style.filter = 'drop-shadow(0 0 1px var(--gray-400)) drop-shadow(0 2px 4px rgba(0,0,0,0.08))';
+  buildFigureBase(figureGroup);
+  svg.appendChild(figureGroup);
+
+  const detailGroup = document.createElementNS(SVGNS, 'g');
+  view.lines.forEach(d => {
+    const path = document.createElementNS(SVGNS, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', 'var(--gray-300)');
+    path.setAttribute('stroke-width', '1.5');
+    detailGroup.appendChild(path);
+  });
+  svg.appendChild(detailGroup);
+
+  const pinsGroup = document.createElementNS(SVGNS, 'g');
+  view.landmarks.forEach(lm => {
+    if (currentMode === 'explore' && currentFilter !== 'all' && lm.type !== currentFilter) return;
+
+    const g = document.createElementNS(SVGNS, 'g');
+    g.setAttribute('class', 'pin');
+    g.setAttribute('transform', 'translate(' + lm.x + ',' + lm.y + ')');
+    g.dataset.id = lm.id;
+
+    const circle = document.createElementNS(SVGNS, 'circle');
+    circle.setAttribute('class', 'pin-bg');
+    circle.setAttribute('r', '11');
+    circle.setAttribute('fill', lm.type === 'bone' ? 'var(--blue-mid)' : 'var(--teal-mid)');
+    g.appendChild(circle);
+
+    const text = document.createElementNS(SVGNS, 'text');
+    text.textContent = lm.n;
+    g.appendChild(text);
+
+    if (lm.id === selectedPinId) g.classList.add('selected');
+
+    g.addEventListener('click', () => onPinClick(lm));
+    pinsGroup.appendChild(g);
+  });
+  svg.appendChild(pinsGroup);
+
+  wrap.appendChild(svg);
+}
+
+function onPinClick(lm) {
+  if (currentMode === 'explore') {
+    selectedPinId = lm.id;
+    showInfo(lm);
+    renderFigure();
+  } else {
+    handleQuizGuess(lm);
+  }
+}
+
+function showInfo(lm) {
+  document.getElementById('infoPlaceholder').classList.remove('open');
+  const card = document.getElementById('infoCard');
+  card.classList.add('open');
+  document.getElementById('infoName').textContent = lm.n + '. ' + lm.name;
+  const tag = document.getElementById('infoTag');
+  tag.textContent = lm.type === 'bone' ? 'Bony landmark' : 'Soft tissue';
+  tag.className = 'info-tag ' + (lm.type === 'bone' ? 'tag-bone' : 'tag-soft');
+  document.getElementById('infoNote').textContent = lm.note;
+}
+
+function renderViewChips() {
+  const wrap = document.getElementById('viewChips');
+  wrap.innerHTML = '';
+  Object.keys(VIEWS).forEach(key => {
+    const chip = document.createElement('button');
+    chip.className = 'chip' + (key === currentView ? ' active' : '');
+    chip.textContent = VIEWS[key].label.replace(' view', '');
+    chip.onclick = () => { currentView = key; selectedPinId = null; hideInfo(); if (currentMode === 'quiz') startQuiz(); render(); };
+    wrap.appendChild(chip);
+  });
+}
+
+function renderModeChips() {
+  const wrap = document.getElementById('modeChips');
+  wrap.innerHTML = '';
+  [['explore','Explore'], ['quiz','Quiz me']].forEach(([key,label]) => {
+    const chip = document.createElement('button');
+    chip.className = 'chip' + (key === currentMode ? ' active' : '');
+    chip.textContent = label;
+    chip.onclick = () => {
+      currentMode = key;
+      if (key === 'quiz') startQuiz();
+      else { quizActive = false; hideQuiz(); }
+      render();
+    };
+    wrap.appendChild(chip);
+  });
+}
+
+function renderFilterChips() {
+  const wrap = document.getElementById('filterChips');
+  wrap.innerHTML = '';
+  if (currentMode !== 'explore') return;
+  const opts = [
+    ['all', null, 'All'],
+    ['bone', 'dot-bone', 'Bony'],
+    ['soft', 'dot-soft', 'Soft tissue']
+  ];
+  opts.forEach(([key, dotClass, label]) => {
+    const chip = document.createElement('button');
+    chip.className = 'chip' + (key === currentFilter ? ' active' : '');
+    if (dotClass) {
+      const dot = document.createElement('span');
+      dot.className = 'dot ' + dotClass;
+      chip.appendChild(dot);
+    }
+    chip.appendChild(document.createTextNode(label));
+    chip.onclick = () => { currentFilter = key; render(); };
+    wrap.appendChild(chip);
+  });
+}
+
+function hideInfo() {
+  document.getElementById('infoCard').classList.remove('open');
+  document.getElementById('infoPlaceholder').classList.add('open');
+}
+
+function hideQuiz() {
+  document.getElementById('quizBar').classList.remove('open');
+  document.getElementById('quizPrompt').classList.remove('open');
+  document.getElementById('quizResult').classList.remove('open');
+  document.getElementById('quizControls').style.display = 'none';
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startQuiz() {
+  const view = VIEWS[currentView];
+  quizOrder = shuffle(view.landmarks.map(l => l.id));
+  quizIndex = 0;
+  quizScore = 0;
+  quizActive = true;
+  selectedPinId = null;
+  document.getElementById('quizResult').classList.remove('open');
+  document.getElementById('quizControls').style.display = 'flex';
+  document.getElementById('quizBar').classList.add('open');
+  document.getElementById('quizPrompt').classList.add('open');
+  hideInfoCards();
+  updateQuizPrompt();
+  render();
+}
+
+function hideInfoCards() {
+  document.getElementById('infoCard').classList.remove('open');
+  document.getElementById('infoPlaceholder').classList.remove('open');
+}
+
+function updateQuizPrompt() {
+  const view = VIEWS[currentView];
+  const total = quizOrder.length;
+  document.getElementById('quizFill').style.width = (quizIndex / total * 100) + '%';
+  document.getElementById('quizLabel').textContent = Math.min(quizIndex, total) + ' / ' + total;
+  if (quizIndex >= total) {
+    finishQuiz();
+    return;
+  }
+  const target = view.landmarks.find(l => l.id === quizOrder[quizIndex]);
+  document.getElementById('quizPrompt').innerHTML = 'Tap the pin for: <b>' + target.name + '</b>';
+}
+
+function handleQuizGuess(lm) {
+  if (!quizActive) return;
+  const view = VIEWS[currentView];
+  const targetId = quizOrder[quizIndex];
+  const target = view.landmarks.find(l => l.id === targetId);
+
+  const pinEls = document.querySelectorAll('.pin');
+  let clickedEl = null;
+  pinEls.forEach(el => { if (el.dataset.id === lm.id) clickedEl = el; });
+
+  if (lm.id === targetId) {
+    if (clickedEl) clickedEl.classList.add('correct');
+    quizScore++;
+    quizIndex++;
+    setTimeout(() => { updateQuizPrompt(); render(); }, 450);
+  } else {
+    if (clickedEl) {
+      clickedEl.classList.add('wrong');
+      setTimeout(() => { clickedEl.classList.remove('wrong'); }, 400);
+    }
+  }
+}
+
+function finishQuiz() {
+  quizActive = false;
+  document.getElementById('quizBar').classList.remove('open');
+  document.getElementById('quizPrompt').classList.remove('open');
+  const result = document.getElementById('quizResult');
+  result.classList.add('open');
+  document.getElementById('quizScore').textContent = quizScore + ' / ' + quizOrder.length;
+}
+
+function render() {
+  renderViewChips();
+  renderModeChips();
+  renderFilterChips();
+  document.getElementById('viewLabel').textContent = VIEWS[currentView].label;
+  renderFigure();
+  if (currentMode === 'explore') {
+    hideQuiz();
+    if (selectedPinId) {
+      const lm = VIEWS[currentView].landmarks.find(l => l.id === selectedPinId);
+      if (lm) showInfo(lm); else hideInfo();
+    } else {
+      hideInfo();
+    }
+  } else {
+    hideInfoCards();
+  }
+}
+
+render();
+</script>
+</body>
+</html>
