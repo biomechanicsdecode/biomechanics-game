@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timetable Builder</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-dark: #0c447c;
+    --blue-mid: #185fa5;
+    --blue-light: #e6f1fb;
+    --blue-border: #b5d4f4;
+    --teal-light: #e1f5ee;
+    --teal-dark: #085041;
+    --amber-light: #faeeda;
+    --amber-dark: #633806;
+    --coral-light: #faece7;
+    --coral-dark: #712b13;
+    --violet-light: #f0eafa;
+    --violet-dark: #3f2270;
+    --green-light: #eaf7e3;
+    --green-dark: #2c5c14;
+    --gray-100: #f5f5f4;
+    --gray-200: #e8e7e3;
+    --gray-400: #888780;
+    --gray-700: #3a3a38;
+    --gray-900: #1a1a18;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: var(--font);
+    background: #fff;
+    color: var(--gray-900);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .header {
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 0.5px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--blue-light);
+    border: 0.5px solid var(--blue-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue-dark);
+    flex-shrink: 0;
+  }
+
+  .header-text { flex: 1; }
+
+  .header-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-900);
+    line-height: 1.2;
+  }
+
+  .header-sub {
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-top: 1px;
+  }
+
+  .header-link {
+    font-size: 12px;
+    color: var(--blue-mid);
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 6px 10px;
+    border-radius: 20px;
+    border: 0.5px solid var(--blue-border);
+    background: var(--blue-light);
+  }
+
+  .header-link:active { transform: scale(0.96); }
+
+  /* Settings */
+  .panel {
+    margin: 0.9rem 1.25rem 0;
+    padding: 0.9rem 1rem;
+    background: var(--gray-100);
+    border-radius: var(--radius-md);
+  }
+
+  .panel-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gray-400);
+    margin-bottom: 8px;
+  }
+
+  .field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+    min-width: 110px;
+  }
+
+  .field label {
+    font-size: 10.5px;
+    color: var(--gray-400);
+    font-weight: 600;
+  }
+
+  .field input {
+    border: 0.5px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.6rem;
+    font-size: 13px;
+    font-family: var(--font);
+    color: var(--gray-900);
+    background: #fff;
+    outline: none;
+    width: 100%;
+  }
+
+  .field input:focus { border-color: var(--blue-mid); }
+
+  .day-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .day-chip {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 0.5px solid var(--gray-200);
+    background: #fff;
+    color: var(--gray-700);
+    cursor: pointer;
+  }
+
+  .day-chip.active {
+    background: var(--blue-light);
+    border-color: var(--blue-border);
+    color: var(--blue-dark);
+  }
+
+  .day-chip:active { transform: scale(0.96); }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  .btn {
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 0.5rem 0.8rem;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--gray-200);
+    background: #fff;
+    color: var(--gray-700);
+    cursor: pointer;
+  }
+
+  .btn:active { transform: scale(0.97); }
+
+  .btn.primary {
+    background: var(--blue-mid);
+    border-color: var(--blue-mid);
+    color: #fff;
+  }
+
+  .btn.danger {
+    color: var(--coral-dark);
+    border-color: #f0c3b3;
+  }
+
+  /* Grid */
+  .grid-section {
+    margin: 1rem 1.25rem 1.25rem;
+  }
+
+  .grid-title-row {
+    margin-bottom: 8px;
+  }
+
+  .grid-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gray-900);
+  }
+
+  .grid-subtitle {
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-top: 2px;
+  }
+
+  .grid-wrap {
+    overflow-x: auto;
+    border: 0.5px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    scrollbar-width: thin;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 560px;
+  }
+
+  th, td {
+    border: 0.5px solid var(--gray-200);
+    text-align: left;
+    vertical-align: top;
+    padding: 0;
+  }
+
+  thead th {
+    background: var(--gray-100);
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--gray-700);
+    padding: 8px 10px;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+  }
+
+  .corner-cell {
+    background: var(--gray-100);
+    width: 118px;
+    min-width: 118px;
+  }
+
+  .period-label-cell {
+    width: 118px;
+    min-width: 118px;
+    padding: 4px 6px !important;
+    background: var(--gray-100);
+    vertical-align: middle;
+  }
+
+  .period-label-cell input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-700);
+    padding: 6px 4px;
+    outline: none;
+    border-radius: 6px;
+  }
+
+  .period-label-cell input:focus { background: #fff; box-shadow: 0 0 0 1px var(--blue-border); }
+
+  .period-del {
+    position: relative;
+  }
+
+  .row-del-btn {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 10px;
+    color: var(--gray-400);
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+    padding: 2px 4px;
+  }
+
+  .row-del-btn:hover { color: var(--coral-dark); }
+
+  .cell-btn {
+    width: 100%;
+    min-height: 54px;
+    background: #fff;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    padding: 6px 8px;
+    font-family: var(--font);
+    display: block;
+  }
+
+  .cell-btn:hover { background: var(--gray-100); }
+
+  .cell-subject {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--gray-900);
+    line-height: 1.3;
+  }
+
+  .cell-meta {
+    font-size: 10.5px;
+    color: var(--gray-400);
+    margin-top: 2px;
+    line-height: 1.3;
+  }
+
+  .cell-empty {
+    font-size: 16px;
+    color: var(--gray-200);
+    font-weight: 300;
+  }
+
+  .break-row td.break-cell {
+    background: var(--gray-100);
+    text-align: center;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--gray-400);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 8px 6px !important;
+  }
+
+  /* color swatch backgrounds for filled cells */
+  .c-blue   { background: var(--blue-light) !important; }
+  .c-teal   { background: var(--teal-light) !important; }
+  .c-amber  { background: var(--amber-light) !important; }
+  .c-coral  { background: var(--coral-light) !important; }
+  .c-violet { background: var(--violet-light) !important; }
+  .c-green  { background: var(--green-light) !important; }
+
+  .c-blue .cell-subject   { color: var(--blue-dark); }
+  .c-teal .cell-subject   { color: var(--teal-dark); }
+  .c-amber .cell-subject  { color: var(--amber-dark); }
+  .c-coral .cell-subject  { color: var(--coral-dark); }
+  .c-violet .cell-subject { color: var(--violet-dark); }
+  .c-green .cell-subject  { color: var(--green-dark); }
+
+  /* Modal */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 20, 18, 0.4);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 50;
+  }
+
+  .overlay.open { display: flex; }
+
+  .modal {
+    background: #fff;
+    width: 100%;
+    max-width: 420px;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 1.1rem 1.25rem 1.4rem;
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+
+  @media (min-width: 480px) {
+    .overlay { align-items: center; }
+    .modal { border-radius: var(--radius-lg); }
+  }
+
+  .modal-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--gray-900);
+  }
+
+  .modal .field { margin-bottom: 10px; }
+
+  .swatch-row {
+    display: flex;
+    gap: 8px;
+    margin: 4px 0 14px;
+    flex-wrap: wrap;
+  }
+
+  .swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+  }
+
+  .swatch.selected { border-color: var(--gray-900); }
+
+  .sw-blue   { background: var(--blue-mid); }
+  .sw-teal   { background: var(--teal-dark); }
+  .sw-amber  { background: var(--amber-dark); }
+  .sw-coral  { background: var(--coral-dark); }
+  .sw-violet { background: var(--violet-dark); }
+  .sw-green  { background: var(--green-dark); }
+
+  .modal-btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .modal-btn-row .btn { flex: 1; text-align: center; }
+
+  /* Branding footer */
+  .branding {
+    text-align: center;
+    padding: 0.5rem;
+    font-size: 11px;
+    color: var(--gray-400);
+    border-top: 0.5px solid var(--gray-200);
+    margin-top: auto;
+  }
+
+  .save-note {
+    font-size: 10.5px;
+    color: var(--gray-400);
+    margin-top: 6px;
+  }
+
+  #fileImportInput { display: none; }
+
+  @media print {
+    .header-link, .panel, .btn-row, .branding, .save-note { display: none !important; }
+    .grid-wrap { border: none; }
+    body { padding: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-avatar">TT</div>
+  <div class="header-text">
+    <div class="header-title">Timetable Builder</div>
+    <div class="header-sub">dept. of physiotherapy</div>
+  </div>
+  <a class="header-link" href="index.html">🧠 Biomechanics game</a>
+</div>
+
+<div class="panel">
+  <div class="panel-title">Timetable details</div>
+  <div class="field-row">
+    <div class="field">
+      <label for="ttTitle">Title</label>
+      <input id="ttTitle" type="text" placeholder="e.g. B.P.T. Semester III – Section A">
+    </div>
+    <div class="field">
+      <label for="ttSubtitle">Subtitle</label>
+      <input id="ttSubtitle" type="text" placeholder="e.g. Department of Physiotherapy">
+    </div>
+  </div>
+
+  <div class="panel-title">Days</div>
+  <div class="day-chips" id="dayChips"></div>
+
+  <div class="panel-title">Auto-generate periods</div>
+  <div class="field-row">
+    <div class="field">
+      <label for="genStart">Start time</label>
+      <input id="genStart" type="time" value="09:00">
+    </div>
+    <div class="field">
+      <label for="genDuration">Period (min)</label>
+      <input id="genDuration" type="number" min="10" step="5" value="55">
+    </div>
+    <div class="field">
+      <label for="genCount">Periods</label>
+      <input id="genCount" type="number" min="1" max="14" value="6">
+    </div>
+  </div>
+  <div class="field-row">
+    <div class="field">
+      <label for="genBreakAfter">Break after period #</label>
+      <input id="genBreakAfter" type="number" min="0" max="14" value="3">
+    </div>
+    <div class="field">
+      <label for="genBreakDuration">Break length (min)</label>
+      <input id="genBreakDuration" type="number" min="0" step="5" value="30">
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn primary" onclick="generatePeriods()">Generate periods</button>
+    <button class="btn" onclick="addPeriod()">+ Add period</button>
+    <button class="btn" onclick="addBreak()">+ Add break row</button>
+  </div>
+
+  <div class="panel-title" style="margin-top:14px;">Data</div>
+  <div class="btn-row">
+    <button class="btn" onclick="exportJSON()">⬇ Export JSON</button>
+    <button class="btn" onclick="document.getElementById('fileImportInput').click()">⬆ Import JSON</button>
+    <button class="btn" onclick="window.print()">🖨 Print</button>
+    <button class="btn danger" onclick="resetAll()">Reset all</button>
+  </div>
+  <input type="file" id="fileImportInput" accept="application/json" onchange="importJSON(event)">
+  <div class="save-note" id="saveNote">Saved to this browser automatically.</div>
+</div>
+
+<div class="grid-section">
+  <div class="grid-title-row">
+    <div class="grid-title" id="gridTitleView"></div>
+    <div class="grid-subtitle" id="gridSubtitleView"></div>
+  </div>
+  <div class="grid-wrap">
+    <table id="ttTable"></table>
+  </div>
+</div>
+
+<div class="branding">timetable builder &nbsp;·&nbsp; dept. of physiotherapy, integral university</div>
+
+<div class="overlay" id="cellOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Edit slot</div>
+    <div class="field">
+      <label for="cSubject">Subject / activity</label>
+      <input id="cSubject" type="text" placeholder="e.g. Kinesiology">
+    </div>
+    <div class="field">
+      <label for="cFaculty">Faculty</label>
+      <input id="cFaculty" type="text" placeholder="e.g. Dr. Ahmed">
+    </div>
+    <div class="field">
+      <label for="cRoom">Room / venue</label>
+      <input id="cRoom" type="text" placeholder="e.g. Lab 2">
+    </div>
+    <label style="font-size:10.5px;color:var(--gray-400);font-weight:600;">Color</label>
+    <div class="swatch-row" id="swatchRow"></div>
+    <div class="modal-btn-row">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn danger" onclick="clearCell()">Clear</button>
+      <button class="btn primary" onclick="saveCell()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'tt_builder_data_v1';
+const COLORS = ['blue', 'teal', 'amber', 'coral', 'violet', 'green'];
+const DAY_DEFS = [
+  { key: 'mon', label: 'Mon' },
+  { key: 'tue', label: 'Tue' },
+  { key: 'wed', label: 'Wed' },
+  { key: 'thu', label: 'Thu' },
+  { key: 'fri', label: 'Fri' },
+  { key: 'sat', label: 'Sat' },
+  { key: 'sun', label: 'Sun' }
+];
+
+let state = null;
+let editingKey = null; // "periodId|dayKey"
+let selectedColor = 'blue';
+let idCounter = 1;
+
+function uid() { return 'p' + (idCounter++) + '_' + Date.now().toString(36); }
+
+function defaultState() {
+  idCounter = 1;
+  const periods = [];
+  let t = timeToMinutes('09:00');
+  for (let i = 0; i < 6; i++) {
+    if (i === 3) {
+      periods.push({ id: uid(), label: minutesToTime(t) + ' Lunch Break', type: 'break' });
+      t += 30;
+    }
+    const end = t + 55;
+    periods.push({ id: uid(), label: minutesToTime(t) + ' – ' + minutesToTime(end), type: 'class' });
+    t = end;
+  }
+  return {
+    title: 'B.P.T. Semester III – Section A',
+    subtitle: 'Department of Physiotherapy',
+    days: DAY_DEFS.map(d => ({ key: d.key, label: d.label, on: d.key !== 'sun' })),
+    periods,
+    cells: {}
+  };
+}
+
+function timeToMinutes(str) {
+  const [h, m] = str.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function minutesToTime(mins) {
+  mins = ((mins % 1440) + 1440) % 1440;
+  let h = Math.floor(mins / 60);
+  const m = mins % 60;
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  let h12 = h % 12;
+  if (h12 === 0) h12 = 12;
+  return h12 + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.periods && parsed.days) {
+        idCounter = 1;
+        return parsed;
+      }
+    }
+  } catch (e) {}
+  return defaultState();
+}
+
+function persist() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const note = document.getElementById('saveNote');
+    note.textContent = 'Saved · ' + new Date().toLocaleTimeString();
+  } catch (e) {}
+}
+
+function cellKey(periodId, dayKey) { return periodId + '|' + dayKey; }
+
+function render() {
+  document.getElementById('ttTitle').value = state.title;
+  document.getElementById('ttSubtitle').value = state.subtitle;
+  document.getElementById('gridTitleView').textContent = state.title || 'Untitled timetable';
+  document.getElementById('gridSubtitleView').textContent = state.subtitle || '';
+  renderDayChips();
+  renderTable();
+}
+
+function renderDayChips() {
+  const wrap = document.getElementById('dayChips');
+  wrap.innerHTML = '';
+  state.days.forEach(d => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'day-chip' + (d.on ? ' active' : '');
+    chip.textContent = d.label;
+    chip.onclick = () => { d.on = !d.on; persist(); render(); };
+    wrap.appendChild(chip);
+  });
+}
+
+function activeDays() { return state.days.filter(d => d.on); }
+
+function renderTable() {
+  const table = document.getElementById('ttTable');
+  table.innerHTML = '';
+  const days = activeDays();
+
+  const thead = document.createElement('thead');
+  const trh = document.createElement('tr');
+  const corner = document.createElement('th');
+  corner.className = 'corner-cell';
+  corner.textContent = 'Period';
+  trh.appendChild(corner);
+  days.forEach(d => {
+    const th = document.createElement('th');
+    th.textContent = d.label;
+    trh.appendChild(th);
+  });
+  thead.appendChild(trh);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  state.periods.forEach(period => {
+    const tr = document.createElement('tr');
+    if (period.type === 'break') tr.className = 'break-row';
+
+    const labelTd = document.createElement('td');
+    labelTd.className = 'period-label-cell period-del';
+    const labelInput = document.createElement('input');
+    labelInput.type = 'text';
+    labelInput.value = period.label;
+    labelInput.oninput = () => { period.label = labelInput.value; persist(); };
+    const delBtn = document.createElement('button');
+    delBtn.className = 'row-del-btn';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Remove row';
+    delBtn.onclick = () => removePeriod(period.id);
+    labelTd.appendChild(labelInput);
+    labelTd.appendChild(delBtn);
+    tr.appendChild(labelTd);
+
+    if (period.type === 'break') {
+      const td = document.createElement('td');
+      td.className = 'break-cell';
+      td.colSpan = Math.max(days.length, 1);
+      td.textContent = 'Break';
+      tr.appendChild(td);
+    } else {
+      days.forEach(d => {
+        const td = document.createElement('td');
+        const key = cellKey(period.id, d.key);
+        const data = state.cells[key];
+        const btn = document.createElement('button');
+        btn.className = 'cell-btn' + (data && data.color ? ' c-' + data.color : '');
+        btn.onclick = () => openModal(period.id, d.key);
+        if (data && data.subject) {
+          const subj = document.createElement('div');
+          subj.className = 'cell-subject';
+          subj.textContent = data.subject;
+          btn.appendChild(subj);
+          const metaParts = [data.faculty, data.room].filter(Boolean);
+          if (metaParts.length) {
+            const meta = document.createElement('div');
+            meta.className = 'cell-meta';
+            meta.textContent = metaParts.join(' · ');
+            btn.appendChild(meta);
+          }
+        } else {
+          const empty = document.createElement('div');
+          empty.className = 'cell-empty';
+          empty.textContent = '+';
+          btn.appendChild(empty);
+        }
+        td.appendChild(btn);
+        tr.appendChild(td);
+      });
+    }
+
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+}
+
+function openModal(periodId, dayKey) {
+  editingKey = cellKey(periodId, dayKey);
+  const data = state.cells[editingKey] || { subject: '', faculty: '', room: '', color: 'blue' };
+  const period = state.periods.find(p => p.id === periodId);
+  const day = state.days.find(d => d.key === dayKey);
+  document.getElementById('modalTitle').textContent = (day ? day.label : '') + ' · ' + (period ? period.label : '');
+  document.getElementById('cSubject').value = data.subject || '';
+  document.getElementById('cFaculty').value = data.faculty || '';
+  document.getElementById('cRoom').value = data.room || '';
+  selectedColor = data.color || 'blue';
+  renderSwatches();
+  document.getElementById('cellOverlay').classList.add('open');
+  document.getElementById('cSubject').focus();
+}
+
+function renderSwatches() {
+  const row = document.getElementById('swatchRow');
+  row.innerHTML = '';
+  COLORS.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'swatch sw-' + c + (c === selectedColor ? ' selected' : '');
+    sw.onclick = () => { selectedColor = c; renderSwatches(); };
+    row.appendChild(sw);
+  });
+}
+
+function closeModal() {
+  document.getElementById('cellOverlay').classList.remove('open');
+  editingKey = null;
+}
+
+function saveCell() {
+  if (!editingKey) return;
+  const subject = document.getElementById('cSubject').value.trim();
+  const faculty = document.getElementById('cFaculty').value.trim();
+  const room = document.getElementById('cRoom').value.trim();
+  if (!subject && !faculty && !room) {
+    delete state.cells[editingKey];
+  } else {
+    state.cells[editingKey] = { subject, faculty, room, color: selectedColor };
+  }
+  persist();
+  closeModal();
+  renderTable();
+}
+
+function clearCell() {
+  if (!editingKey) return;
+  delete state.cells[editingKey];
+  persist();
+  closeModal();
+  renderTable();
+}
+
+function addPeriod() {
+  state.periods.push({ id: uid(), label: 'New period', type: 'class' });
+  persist();
+  renderTable();
+}
+
+function addBreak() {
+  state.periods.push({ id: uid(), label: 'Break', type: 'break' });
+  persist();
+  renderTable();
+}
+
+function removePeriod(id) {
+  state.periods = state.periods.filter(p => p.id !== id);
+  Object.keys(state.cells).forEach(key => {
+    if (key.startsWith(id + '|')) delete state.cells[key];
+  });
+  persist();
+  renderTable();
+}
+
+function generatePeriods() {
+  const startStr = document.getElementById('genStart').value || '09:00';
+  const duration = parseInt(document.getElementById('genDuration').value, 10) || 55;
+  const count = Math.max(1, parseInt(document.getElementById('genCount').value, 10) || 1);
+  const breakAfter = parseInt(document.getElementById('genBreakAfter').value, 10) || 0;
+  const breakDuration = parseInt(document.getElementById('genBreakDuration').value, 10) || 0;
+
+  if (Object.keys(state.cells).length && !confirm('This replaces all period rows. Existing class entries in those slots will be lost. Continue?')) {
+    return;
+  }
+
+  const periods = [];
+  let t = timeToMinutes(startStr);
+  for (let i = 1; i <= count; i++) {
+    const end = t + duration;
+    periods.push({ id: uid(), label: minutesToTime(t) + ' – ' + minutesToTime(end), type: 'class' });
+    t = end;
+    if (i === breakAfter && breakDuration > 0) {
+      const bEnd = t + breakDuration;
+      periods.push({ id: uid(), label: 'Break (' + minutesToTime(t) + ' – ' + minutesToTime(bEnd) + ')', type: 'break' });
+      t = bEnd;
+    }
+  }
+  state.periods = periods;
+  state.cells = {};
+  persist();
+  renderTable();
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const safeName = (state.title || 'timetable').replace(/[^a-z0-9]+/gi, '_').toLowerCase();
+  a.download = safeName + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(evt) {
+  const file = evt.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      if (!parsed.periods || !parsed.days) throw new Error('bad format');
+      state = parsed;
+      idCounter = 1;
+      persist();
+      render();
+    } catch (e) {
+      alert('Could not read that file. Make sure it is a timetable JSON export.');
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+
+function resetAll() {
+  if (!confirm('Reset the entire timetable? This clears everything saved in this browser.')) return;
+  state = defaultState();
+  persist();
+  render();
+}
+
+document.getElementById('ttTitle').addEventListener('input', e => {
+  state.title = e.target.value;
+  document.getElementById('gridTitleView').textContent = state.title || 'Untitled timetable';
+  persist();
+});
+
+document.getElementById('ttSubtitle').addEventListener('input', e => {
+  state.subtitle = e.target.value;
+  document.getElementById('gridSubtitleView').textContent = state.subtitle || '';
+  persist();
+});
+
+document.getElementById('cellOverlay').addEventListener('click', e => {
+  if (e.target.id === 'cellOverlay') closeModal();
+});
+
+state = load();
+render();
+</script>
+</body>
+</html>
