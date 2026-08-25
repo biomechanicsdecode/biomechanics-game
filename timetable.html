@@ -50,8 +50,11 @@
     border-bottom: 0.5px solid var(--gray-200);
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 10px;
   }
+
+  .header-links { display: flex; gap: 6px; flex-wrap: wrap; }
 
   .header-avatar {
     width: 36px;
@@ -68,7 +71,7 @@
     flex-shrink: 0;
   }
 
-  .header-text { flex: 1; }
+  .header-text { flex: 1; min-width: 140px; }
 
   .header-title {
     font-size: 15px;
@@ -466,7 +469,10 @@
     <div class="header-title">Timetable Builder</div>
     <div class="header-sub">dept. of physiotherapy</div>
   </div>
-  <a class="header-link" href="index.html">🧠 Biomechanics game</a>
+  <div class="header-links">
+    <a class="header-link" href="index.html">🧠 Biomechanics game</a>
+    <a class="header-link" href="shoulder-anatomy.html">🦴 Shoulder anatomy</a>
+  </div>
 </div>
 
 <div class="panel">
