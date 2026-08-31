@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shoulder Palpation Game</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-dark: #0c447c;
+    --blue-mid: #185fa5;
+    --blue-light: #e6f1fb;
+    --blue-border: #b5d4f4;
+    --teal-light: #e1f5ee;
+    --teal-mid: #0f8a6e;
+    --teal-dark: #085041;
+    --amber-light: #faeeda;
+    --amber-mid: #c9860f;
+    --amber-dark: #633806;
+    --coral-light: #faece7;
+    --coral-mid: #c8532f;
+    --coral-dark: #712b13;
+    --gray-100: #f5f5f4;
+    --gray-200: #e8e7e3;
+    --gray-300: #d6d4cd;
+    --gray-400: #888780;
+    --gray-700: #3a3a38;
+    --gray-900: #1a1a18;
+    --figure-fill: #efe6d8;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: var(--font);
+    background: #fff;
+    color: var(--gray-900);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .header {
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 0.5px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .header-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--coral-light);
+    border: 0.5px solid #f0c9b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .header-text { flex: 1; min-width: 140px; }
+
+  .header-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-900);
+    line-height: 1.2;
+  }
+
+  .header-sub {
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-top: 1px;
+  }
+
+  .header-links { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .header-link {
+    font-size: 11.5px;
+    color: var(--blue-mid);
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 6px 10px;
+    border-radius: 20px;
+    border: 0.5px solid var(--blue-border);
+    background: var(--blue-light);
+  }
+
+  .header-link:active { transform: scale(0.96); }
+
+  /* Stat bar (in-game HUD) */
+  .hud {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 0.75rem 1.25rem 0;
+    flex-wrap: wrap;
+  }
+
+  .hud.open { display: flex; }
+
+  .hud-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .hud-stat .val {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--gray-900);
+  }
+
+  .hud-stat .lbl {
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gray-400);
+  }
+
+  .hud-lives { font-size: 14px; letter-spacing: 2px; }
+
+  .hud-spacer { flex: 1; }
+
+  .hud-level {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--blue-light);
+    color: var(--blue-dark);
+    white-space: nowrap;
+  }
+
+  .hud-combo {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--amber-light);
+    color: var(--amber-dark);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  .hud-combo.show { opacity: 1; }
+
+  /* Timer bar */
+  .timer-wrap {
+    display: none;
+    margin: 0.6rem 1.25rem 0;
+    height: 6px;
+    background: var(--gray-200);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .timer-wrap.open { display: block; }
+
+  .timer-fill {
+    height: 100%;
+    width: 100%;
+    background: var(--teal-mid);
+    border-radius: 6px;
+    transition: width 0.1s linear, background 0.2s ease;
+  }
+
+  .timer-fill.warn { background: var(--amber-mid); }
+  .timer-fill.danger { background: var(--coral-mid); }
+
+  /* Prompt */
+  .prompt-card {
+    display: none;
+    margin: 0.85rem 1.25rem 0;
+    padding: 0.85rem 1rem;
+    background: var(--blue-light);
+    border-radius: var(--radius-md);
+    text-align: center;
+  }
+
+  .prompt-card.open { display: block; }
+
+  .prompt-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--blue-mid);
+    margin-bottom: 2px;
+  }
+
+  .prompt-target {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--blue-dark);
+  }
+
+  /* Figure */
+  .figure-section {
+    margin: 0.9rem 1.25rem 0;
+    padding: 0.9rem;
+    background: var(--gray-100);
+    border-radius: var(--radius-md);
+    position: relative;
+  }
+
+  .view-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gray-400);
+    margin-bottom: 6px;
+    text-align: center;
+  }
+
+  .figure-wrap {
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .figure-wrap svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .figure-section.shake { animation: shakeFig 0.35s ease; }
+  @keyframes shakeFig {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(3px); }
+  }
+
+  .pin { cursor: pointer; }
+
+  .pin circle.pin-bg {
+    stroke: #fff;
+    stroke-width: 2;
+    transition: r 0.12s ease;
+  }
+
+  .pin text {
+    font-size: 11px;
+    font-weight: 700;
+    fill: #fff;
+    text-anchor: middle;
+    dominant-baseline: central;
+    pointer-events: none;
+    font-family: var(--font);
+  }
+
+  .pin.correct circle.pin-bg { fill: var(--teal-mid) !important; r: 14; }
+  .pin.wrong circle.pin-bg { fill: var(--coral-mid) !important; }
+  .pin.reveal circle.pin-bg { fill: var(--amber-mid) !important; r: 14; }
+
+  .floater {
+    position: absolute;
+    font-size: 13px;
+    font-weight: 700;
+    pointer-events: none;
+    animation: floatUp 0.8s ease forwards;
+  }
+
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-28px); }
+  }
+
+  /* Screens: start / level-up / game over */
+  .screen {
+    display: none;
+    margin: 0.9rem 1.25rem 0;
+    padding: 1.25rem 1.1rem;
+    background: var(--gray-100);
+    border-radius: var(--radius-lg);
+    text-align: center;
+  }
+
+  .screen.open { display: block; }
+
+  .screen-emoji { font-size: 34px; margin-bottom: 6px; }
+
+  .screen-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 6px;
+  }
+
+  .screen-sub {
+    font-size: 13px;
+    color: var(--gray-700);
+    line-height: 1.55;
+    margin-bottom: 14px;
+  }
+
+  .best-score {
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-bottom: 14px;
+  }
+
+  .best-score b { color: var(--gray-700); }
+
+  .diff-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .diff-chip {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 0.5px solid var(--gray-200);
+    background: #fff;
+    color: var(--gray-700);
+    cursor: pointer;
+  }
+
+  .diff-chip.active {
+    background: var(--blue-mid);
+    border-color: var(--blue-mid);
+    color: #fff;
+  }
+
+  .btn {
+    font-size: 13px;
+    font-weight: 700;
+    padding: 0.65rem 1.4rem;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--blue-mid);
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .btn:active { transform: scale(0.97); }
+
+  .btn.ghost {
+    background: #fff;
+    border: 0.5px solid var(--gray-200);
+    color: var(--gray-700);
+    margin-left: 8px;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 14px 0;
+    text-align: left;
+  }
+
+  .result-cell {
+    background: #fff;
+    border: 0.5px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+  }
+
+  .result-cell .val { font-size: 16px; font-weight: 700; color: var(--gray-900); }
+  .result-cell .lbl { font-size: 10px; color: var(--gray-400); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .grade-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: var(--teal-light);
+    color: var(--teal-dark);
+    border: 2px solid var(--teal-mid);
+  }
+
+  .new-high {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--amber-dark);
+    background: var(--amber-light);
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+
+  .legend-note {
+    margin: 0.9rem 1.25rem 0;
+    font-size: 11.5px;
+    color: var(--gray-400);
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  .branding {
+    text-align: center;
+    padding: 0.5rem;
+    font-size: 11px;
+    color: var(--gray-400);
+    border-top: 0.5px solid var(--gray-200);
+    margin-top: auto;
+  }
+
+  .spacer { height: 1.25rem; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-avatar">🎯</div>
+  <div class="header-text">
+    <div class="header-title">Shoulder Palpation Game</div>
+    <div class="header-sub">beat the clock, find the landmark</div>
+  </div>
+  <div class="header-links">
+    <a class="header-link" href="index.html">🧠 Biomechanics game</a>
+    <a class="header-link" href="shoulder-anatomy.html">🦴 Shoulder anatomy</a>
+    <a class="header-link" href="timetable.html">🗓 Timetable builder</a>
+  </div>
+</div>
+
+<div class="hud" id="hud">
+  <div class="hud-stat"><div class="val" id="hudScore">0</div><div class="lbl">Score</div></div>
+  <div class="hud-stat"><div class="val hud-lives" id="hudLives">❤️❤️❤️</div><div class="lbl">Lives</div></div>
+  <div class="hud-combo" id="hudCombo">🔥 x2</div>
+  <div class="hud-spacer"></div>
+  <div class="hud-level" id="hudLevel">Level 1 · Bony</div>
+</div>
+
+<div class="timer-wrap" id="timerWrap"><div class="timer-fill" id="timerFill"></div></div>
+
+<div class="prompt-card" id="promptCard">
+  <div class="prompt-eyebrow">Palpate</div>
+  <div class="prompt-target" id="promptTarget">—</div>
+</div>
+
+<!-- START SCREEN -->
+<div class="screen open" id="startScreen">
+  <div class="screen-emoji">🖐️</div>
+  <div class="screen-title">Palpation Sprint</div>
+  <div class="screen-sub">
+    You'll be told a landmark. Find it and tap it on the diagram before time runs out.
+    Three levels: bony landmarks → soft tissue → full mixed exam, both anterior and posterior views.
+    You have 3 lives — a wrong tap or a missed clock costs one.
+  </div>
+  <div class="best-score" id="bestScoreLine">No runs yet — set the first high score.</div>
+  <div class="diff-row" id="diffRow"></div>
+  <button class="btn" onclick="beginGame()">▶ Start palpating</button>
+</div>
+
+<!-- LEVEL UP SCREEN -->
+<div class="screen" id="levelUpScreen">
+  <div class="screen-emoji">⬆️</div>
+  <div class="screen-title" id="levelUpTitle">Level up!</div>
+  <div class="screen-sub" id="levelUpSub"></div>
+  <button class="btn" onclick="continueAfterLevelUp()">Continue</button>
+</div>
+
+<!-- GAME OVER SCREEN -->
+<div class="screen" id="overScreen">
+  <div class="grade-badge" id="gradeBadge">A</div>
+  <div class="screen-title" id="overTitle">Run complete</div>
+  <div class="new-high" id="newHighBadge" style="display:none;">🏆 New high score</div>
+  <div class="result-grid">
+    <div class="result-cell"><div class="val" id="resScore">0</div><div class="lbl">Final score</div></div>
+    <div class="result-cell"><div class="val" id="resAccuracy">0%</div><div class="lbl">Accuracy</div></div>
+    <div class="result-cell"><div class="val" id="resStreak">0</div><div class="lbl">Best streak</div></div>
+    <div class="result-cell"><div class="val" id="resLevel">1</div><div class="lbl">Level reached</div></div>
+  </div>
+  <button class="btn" onclick="beginGame()">🔁 Play again</button>
+  <button class="btn ghost" onclick="showStart()">Change difficulty</button>
+</div>
+
+<div class="figure-section" id="figureSection" style="display:none;">
+  <div class="view-label" id="viewLabel">Anterior view</div>
+  <div class="figure-wrap" id="figureWrap"></div>
+</div>
+
+<div class="legend-note">Bony landmarks in blue, soft-tissue landmarks in teal. Diagram is schematic — positions approximate typical surface projections.</div>
+
+<div class="spacer"></div>
+<div class="branding">shoulder palpation game &nbsp;·&nbsp; dept. of physiotherapy, integral university</div>
+
+<script>
+const SVGNS = 'http://www.w3.org/2000/svg';
+const HIGH_SCORE_KEY = 'shoulderPalpationHighScore';
+
+const VIEWS = {
+  anterior: {
+    label: 'Anterior view',
+    landmarks: [
+      { id:'a1', n:1, name:'Sternoclavicular joint', type:'bone', x:32, y:78 },
+      { id:'a2', n:2, name:'Clavicle (shaft)', type:'bone', x:108, y:66 },
+      { id:'a3', n:3, name:'Acromioclavicular (AC) joint', type:'bone', x:186, y:76 },
+      { id:'a4', n:4, name:'Coracoid process', type:'bone', x:150, y:107 },
+      { id:'a5', n:5, name:'Acromion, anterior angle', type:'bone', x:206, y:92 },
+      { id:'a6', n:6, name:'Greater tubercle of humerus', type:'bone', x:216, y:138 },
+      { id:'a7', n:7, name:'Lesser tubercle of humerus', type:'bone', x:196, y:150 },
+      { id:'a8', n:8, name:'Bicipital (intertubercular) groove', type:'bone', x:212, y:180 },
+      { id:'a9', n:9, name:'Deltoid, anterior fibers', type:'soft', x:186, y:126 },
+      { id:'a10', n:10, name:'Pectoralis major, clavicular head', type:'soft', x:88, y:150 },
+      { id:'a11', n:11, name:'Biceps brachii, long head', type:'soft', x:225, y:228 },
+      { id:'a12', n:12, name:'Anterior axillary fold', type:'soft', x:140, y:192 }
+    ]
+  },
+  posterior: {
+    label: 'Posterior view',
+    landmarks: [
+      { id:'p1', n:1, name:'Spine of scapula', type:'bone', x:130, y:98 },
+      { id:'p2', n:2, name:'Acromion, posterior angle', type:'bone', x:198, y:90 },
+      { id:'p3', n:3, name:'Superior angle of scapula', type:'bone', x:72, y:92 },
+      { id:'p4', n:4, name:'Medial (vertebral) border of scapula', type:'bone', x:60, y:170 },
+      { id:'p5', n:5, name:'Inferior angle of scapula', type:'bone', x:72, y:232 },
+      { id:'p6', n:6, name:'Lateral (axillary) border of scapula', type:'bone', x:136, y:198 },
+      { id:'p7', n:7, name:'Deltoid, posterior fibers', type:'soft', x:196, y:150 },
+      { id:'p8', n:8, name:'Infraspinatus', type:'soft', x:118, y:148 },
+      { id:'p9', n:9, name:'Teres minor', type:'soft', x:128, y:182 },
+      { id:'p10', n:10, name:'Teres major', type:'soft', x:108, y:208 },
+      { id:'p11', n:11, name:'Lower trapezius (near scapular spine)', type:'soft', x:88, y:108 },
+      { id:'p12', n:12, name:'Posterior axillary fold / latissimus dorsi', type:'soft', x:98, y:222 }
+    ]
+  }
+};
+
+const LEVELS = [
+  { n:1, name:'Bony landmarks', filter:'bone', rounds:6, time:8000, badge:'Level 1 · Bony' },
+  { n:2, name:'Soft tissue', filter:'soft', rounds:6, time:6500, badge:'Level 2 · Soft tissue' },
+  { n:3, name:'Full mixed exam', filter:'all', rounds:8, time:5000, badge:'Level 3 · Mixed' }
+];
+
+const DIFFICULTIES = {
+  standard: { label: 'Standard', mult: 1 },
+  expert:   { label: 'Expert (faster clock)', mult: 0.72 }
+};
+
+let difficulty = 'standard';
+let currentView = 'anterior';
+let levelIndex = 0;
+let roundInLevel = 0;
+let target = null;
+
+let score = 0;
+let lives = 3;
+let streak = 0;
+let bestStreak = 0;
+let correctCount = 0;
+let totalCount = 0;
+let maxLevelReached = 1;
+
+let timerHandle = null;
+let timerStart = 0;
+let timerDuration = 0;
+let roundActive = false;
+
+let audioCtx = null;
+function beep(freq, dur, type) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + dur);
+  } catch (e) { /* audio unsupported — ignore */ }
+}
+const sndCorrect = () => beep(880, 0.15, 'sine');
+const sndWrong = () => beep(160, 0.22, 'sawtooth');
+const sndLevelUp = () => { beep(660, 0.12, 'triangle'); setTimeout(() => beep(880, 0.16, 'triangle'), 110); };
+const sndOver = () => { beep(300, 0.2, 'sine'); setTimeout(() => beep(220, 0.28, 'sine'), 160); };
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getHighScore() {
+  return parseInt(localStorage.getItem(HIGH_SCORE_KEY) || '0', 10);
+}
+
+function showScreen(id) {
+  ['startScreen', 'levelUpScreen', 'overScreen'].forEach(s => {
+    document.getElementById(s).classList.toggle('open', s === id);
+  });
+  const inPlay = !id;
+  document.getElementById('hud').classList.toggle('open', inPlay);
+  document.getElementById('timerWrap').classList.toggle('open', inPlay);
+  document.getElementById('promptCard').classList.toggle('open', inPlay);
+  document.getElementById('figureSection').style.display = inPlay ? 'block' : 'none';
+}
+
+function renderDiffChips() {
+  const wrap = document.getElementById('diffRow');
+  wrap.innerHTML = '';
+  Object.keys(DIFFICULTIES).forEach(key => {
+    const chip = document.createElement('button');
+    chip.className = 'diff-chip' + (key === difficulty ? ' active' : '');
+    chip.textContent = DIFFICULTIES[key].label;
+    chip.onclick = () => { difficulty = key; renderDiffChips(); };
+    wrap.appendChild(chip);
+  });
+}
+
+function showStart() {
+  clearTimer();
+  const hs = getHighScore();
+  document.getElementById('bestScoreLine').innerHTML = hs > 0
+    ? 'Your best score: <b>' + hs + '</b>'
+    : 'No runs yet — set the first high score.';
+  renderDiffChips();
+  showScreen('startScreen');
+}
+
+function beginGame() {
+  score = 0; lives = 3; streak = 0; bestStreak = 0;
+  correctCount = 0; totalCount = 0; levelIndex = 0; roundInLevel = 0;
+  maxLevelReached = 1;
+  updateHud();
+  showScreen(null);
+  startLevel(0);
+}
+
+function startLevel(idx) {
+  levelIndex = idx;
+  roundInLevel = 0;
+  maxLevelReached = Math.max(maxLevelReached, LEVELS[idx].n);
+  document.getElementById('hudLevel').textContent = LEVELS[idx].badge;
+  nextRound();
+}
+
+function updateHud() {
+  document.getElementById('hudScore').textContent = score;
+  document.getElementById('hudLives').textContent = '❤️'.repeat(Math.max(lives, 0)) + '🖤'.repeat(3 - Math.max(lives, 0));
+  const comboEl = document.getElementById('hudCombo');
+  const mult = comboMultiplier();
+  if (mult > 1) {
+    comboEl.textContent = '🔥 x' + mult;
+    comboEl.classList.add('show');
+  } else {
+    comboEl.classList.remove('show');
+  }
+}
+
+function comboMultiplier() {
+  if (streak >= 6) return 3;
+  if (streak >= 3) return 2;
+  return 1;
+}
+
+function nextRound() {
+  const level = LEVELS[levelIndex];
+  if (roundInLevel >= level.rounds) {
+    if (levelIndex < LEVELS.length - 1) {
+      runLevelUp();
+    } else {
+      endGame(true);
+    }
+    return;
+  }
+  roundInLevel++;
+
+  currentView = Math.random() < 0.5 ? 'anterior' : 'posterior';
+  const view = VIEWS[currentView];
+  const pool = level.filter === 'all' ? view.landmarks : view.landmarks.filter(l => l.type === level.filter);
+  target = pool[Math.floor(Math.random() * pool.length)];
+
+  document.getElementById('viewLabel').textContent = view.label;
+  document.getElementById('promptTarget').textContent = target.name;
+  renderFigure(pool);
+
+  timerDuration = Math.round(level.time * DIFFICULTIES[difficulty].mult);
+  startTimer();
+}
+
+function renderFigure(pool) {
+  const wrap = document.getElementById('figureWrap');
+  wrap.innerHTML = '';
+
+  const svg = document.createElementNS(SVGNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 340 320');
+
+  const figureGroup = document.createElementNS(SVGNS, 'g');
+  figureGroup.style.filter = 'drop-shadow(0 0 1px var(--gray-400)) drop-shadow(0 2px 4px rgba(0,0,0,0.08))';
+  buildFigureBase(figureGroup);
+  svg.appendChild(figureGroup);
+
+  const pinsGroup = document.createElementNS(SVGNS, 'g');
+  pinsGroup.setAttribute('id', 'pinsGroup');
+  pool.forEach(lm => {
+    const g = document.createElementNS(SVGNS, 'g');
+    g.setAttribute('class', 'pin');
+    g.setAttribute('transform', 'translate(' + lm.x + ',' + lm.y + ')');
+    g.dataset.id = lm.id;
+
+    const circle = document.createElementNS(SVGNS, 'circle');
+    circle.setAttribute('class', 'pin-bg');
+    circle.setAttribute('r', '11');
+    circle.setAttribute('fill', lm.type === 'bone' ? 'var(--blue-mid)' : 'var(--teal-mid)');
+    g.appendChild(circle);
+
+    const text = document.createElementNS(SVGNS, 'text');
+    text.textContent = lm.n;
+    g.appendChild(text);
+
+    g.addEventListener('click', () => onPinClick(lm, g));
+    pinsGroup.appendChild(g);
+  });
+  svg.appendChild(pinsGroup);
+
+  wrap.appendChild(svg);
+  roundActive = true;
+}
+
+function buildFigureBase(group) {
+  const chest = document.createElementNS(SVGNS, 'rect');
+  chest.setAttribute('x', -20); chest.setAttribute('y', 140);
+  chest.setAttribute('width', 200); chest.setAttribute('height', 200);
+  chest.setAttribute('rx', 50); chest.setAttribute('fill', 'var(--figure-fill)');
+  group.appendChild(chest);
+
+  const neck = document.createElementNS(SVGNS, 'rect');
+  neck.setAttribute('x', 40); neck.setAttribute('y', -20);
+  neck.setAttribute('width', 70); neck.setAttribute('height', 120);
+  neck.setAttribute('rx', 25); neck.setAttribute('fill', 'var(--figure-fill)');
+  group.appendChild(neck);
+
+  const shoulder = document.createElementNS(SVGNS, 'ellipse');
+  shoulder.setAttribute('cx', 170); shoulder.setAttribute('cy', 120);
+  shoulder.setAttribute('rx', 70); shoulder.setAttribute('ry', 65);
+  shoulder.setAttribute('fill', 'var(--figure-fill)');
+  group.appendChild(shoulder);
+
+  const arm = document.createElementNS(SVGNS, 'rect');
+  arm.setAttribute('x', 190); arm.setAttribute('y', 110);
+  arm.setAttribute('width', 100); arm.setAttribute('height', 220);
+  arm.setAttribute('rx', 45); arm.setAttribute('fill', 'var(--figure-fill)');
+  group.appendChild(arm);
+}
+
+function startTimer() {
+  clearTimer();
+  timerStart = Date.now();
+  const fill = document.getElementById('timerFill');
+  fill.style.width = '100%';
+  fill.classList.remove('warn', 'danger');
+  timerHandle = setInterval(() => {
+    const elapsed = Date.now() - timerStart;
+    const frac = Math.max(0, 1 - elapsed / timerDuration);
+    fill.style.width = (frac * 100) + '%';
+    fill.classList.toggle('warn', frac <= 0.5 && frac > 0.22);
+    fill.classList.toggle('danger', frac <= 0.22);
+    if (elapsed >= timerDuration) {
+      clearTimer();
+      handleTimeout();
+    }
+  }, 80);
+}
+
+function clearTimer() {
+  if (timerHandle) { clearInterval(timerHandle); timerHandle = null; }
+}
+
+function spawnFloater(text, color) {
+  const section = document.getElementById('figureSection');
+  const f = document.createElement('div');
+  f.className = 'floater';
+  f.textContent = text;
+  f.style.color = color;
+  f.style.left = '50%';
+  f.style.top = '6px';
+  f.style.transform = 'translateX(-50%)';
+  section.appendChild(f);
+  setTimeout(() => f.remove(), 800);
+}
+
+function onPinClick(lm, el) {
+  if (!roundActive) return;
+  totalCount++;
+
+  if (lm.id === target.id) {
+    roundActive = false;
+    clearTimer();
+    el.classList.add('correct');
+    sndCorrect();
+    correctCount++;
+    streak++;
+    bestStreak = Math.max(bestStreak, streak);
+    const mult = comboMultiplier();
+    const elapsed = Date.now() - timerStart;
+    const timeFrac = Math.max(0, 1 - elapsed / timerDuration);
+    const gained = Math.round((100 + timeFrac * 60) * mult);
+    score += gained;
+    spawnFloater('+' + gained, '#0f8a6e');
+    updateHud();
+    setTimeout(nextRound, 480);
+  } else {
+    el.classList.add('wrong');
+    sndWrong();
+    document.getElementById('figureSection').classList.add('shake');
+    setTimeout(() => document.getElementById('figureSection').classList.remove('shake'), 350);
+    setTimeout(() => el.classList.remove('wrong'), 350);
+    loseLife();
+  }
+}
+
+function handleTimeout() {
+  if (!roundActive) return;
+  roundActive = false;
+  sndWrong();
+  const pinEl = document.querySelector('#pinsGroup g[data-id="' + target.id + '"]');
+  if (pinEl) pinEl.classList.add('reveal');
+  spawnFloater('missed', '#c8532f');
+  loseLife(true);
+}
+
+function loseLife(fromTimeout) {
+  totalCount += fromTimeout ? 1 : 0;
+  lives--;
+  streak = 0;
+  updateHud();
+  if (lives <= 0) {
+    setTimeout(() => endGame(false), 500);
+  } else {
+    setTimeout(nextRound, 550);
+  }
+}
+
+function runLevelUp() {
+  clearTimer();
+  sndLevelUp();
+  const next = LEVELS[levelIndex + 1];
+  document.getElementById('levelUpTitle').textContent = 'Level ' + next.n + ' unlocked!';
+  document.getElementById('levelUpSub').textContent =
+    next.name + ' — ' + next.rounds + ' landmarks, ' +
+    Math.round((next.time * DIFFICULTIES[difficulty].mult) / 100) / 10 + 's each. Stay sharp.';
+  showScreen('levelUpScreen');
+}
+
+function continueAfterLevelUp() {
+  showScreen(null);
+  startLevel(levelIndex + 1);
+}
+
+function gradeFor(accuracy, lvl) {
+  if (lvl >= 3 && accuracy >= 90) return { g: 'S', color: 'var(--teal-mid)' };
+  if (accuracy >= 80) return { g: 'A', color: 'var(--teal-mid)' };
+  if (accuracy >= 65) return { g: 'B', color: 'var(--blue-mid)' };
+  if (accuracy >= 45) return { g: 'C', color: 'var(--amber-mid)' };
+  return { g: 'D', color: 'var(--coral-mid)' };
+}
+
+function endGame(cleared) {
+  clearTimer();
+  sndOver();
+  const accuracy = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+  const hs = getHighScore();
+  const isNewHigh = score > hs;
+  if (isNewHigh) localStorage.setItem(HIGH_SCORE_KEY, String(score));
+
+  document.getElementById('overTitle').textContent = cleared ? 'Full exam cleared! 🎉' : 'Out of lives';
+  document.getElementById('newHighBadge').style.display = isNewHigh ? 'inline-block' : 'none';
+  document.getElementById('resScore').textContent = score;
+  document.getElementById('resAccuracy').textContent = accuracy + '%';
+  document.getElementById('resStreak').textContent = bestStreak;
+  document.getElementById('resLevel').textContent = maxLevelReached;
+
+  const grade = gradeFor(accuracy, maxLevelReached);
+  const badge = document.getElementById('gradeBadge');
+  badge.textContent = grade.g;
+  badge.style.borderColor = grade.color;
+  badge.style.color = grade.color;
+
+  showScreen('overScreen');
+}
+
+showStart();
+</script>
+</body>
+</html>
