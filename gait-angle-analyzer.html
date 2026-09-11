@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gait Joint Angle Analyzer</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-dark: #0c447c;
+    --blue-mid: #185fa5;
+    --blue-light: #e6f1fb;
+    --blue-border: #b5d4f4;
+    --teal-light: #e1f5ee;
+    --teal-mid: #0f8a6e;
+    --teal-dark: #085041;
+    --amber-light: #faeeda;
+    --amber-mid: #c98a1f;
+    --amber-dark: #633806;
+    --coral-light: #faece7;
+    --coral-mid: #c8532f;
+    --coral-dark: #712b13;
+    --gray-100: #f5f5f4;
+    --gray-200: #e8e7e3;
+    --gray-300: #d6d4cd;
+    --gray-400: #888780;
+    --gray-700: #3a3a38;
+    --gray-900: #1a1a18;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: var(--font);
+    background: #fff;
+    color: var(--gray-900);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Header */
+  .header {
+    padding: 1rem 1.25rem 0.75rem;
+    border-bottom: 0.5px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .header-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--blue-light);
+    border: 0.5px solid var(--blue-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue-dark);
+    flex-shrink: 0;
+  }
+
+  .header-text { flex: 1; min-width: 140px; }
+
+  .header-title { font-size: 15px; font-weight: 600; color: var(--gray-900); line-height: 1.2; }
+  .header-sub { font-size: 12px; color: var(--gray-400); margin-top: 1px; }
+
+  .header-links { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .header-link {
+    font-size: 11.5px;
+    color: var(--blue-mid);
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 6px 10px;
+    border-radius: 20px;
+    border: 0.5px solid var(--blue-border);
+    background: var(--blue-light);
+  }
+
+  .header-link:active { transform: scale(0.96); }
+
+  /* Disclaimer */
+  .disclaimer {
+    margin: 0.9rem 1.25rem 0;
+    padding: 0.85rem 1rem;
+    background: var(--coral-light);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--coral-mid);
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--coral-dark);
+  }
+
+  .disclaimer b { font-weight: 700; }
+
+  /* Chip rows */
+  .chip-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 0.9rem 1.25rem 0;
+    align-items: center;
+  }
+
+  .chip-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--gray-400);
+    width: 100%;
+    margin-bottom: -2px;
+  }
+
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    border-radius: 20px;
+    font-size: 12.5px;
+    font-weight: 500;
+    border: 0.5px solid var(--gray-200);
+    background: #fff;
+    color: var(--gray-700);
+    cursor: pointer;
+  }
+
+  .chip:active { transform: scale(0.96); }
+
+  .chip.active {
+    background: var(--blue-light);
+    border-color: var(--blue-border);
+    color: var(--blue-dark);
+    font-weight: 600;
+  }
+
+  /* Video */
+  .video-section {
+    margin: 0.9rem 1.25rem 0;
+    padding: 0.9rem;
+    background: var(--gray-100);
+    border-radius: var(--radius-md);
+  }
+
+  .video-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    aspect-ratio: 4 / 3;
+    background: var(--gray-900);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+
+  .video-wrap video, .video-wrap canvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+
+  .video-wrap video { transform: scaleX(-1); }
+
+  .status-pill {
+    position: absolute;
+    top: 8px; left: 8px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    z-index: 2;
+  }
+
+  .rec-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--coral-mid);
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+
+  .video-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-400);
+    font-size: 12.5px;
+    text-align: center;
+    padding: 1.5rem;
+  }
+
+  .cam-controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 0.75rem;
+  }
+
+  /* Buttons */
+  .btn {
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 0.55rem 1rem;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--gray-200);
+    background: #fff;
+    color: var(--gray-700);
+    cursor: pointer;
+  }
+
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .btn.primary { background: var(--blue-mid); border-color: var(--blue-mid); color: #fff; }
+  .btn.danger { background: var(--coral-mid); border-color: var(--coral-mid); color: #fff; }
+
+  /* Angle readout cards */
+  .angle-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 0.9rem 1.25rem 0;
+  }
+
+  @media (max-width: 480px) {
+    .angle-grid { grid-template-columns: 1fr; }
+  }
+
+  .angle-card {
+    padding: 0.8rem 0.85rem;
+    background: #fff;
+    border: 0.5px solid var(--gray-200);
+    border-radius: var(--radius-md);
+  }
+
+  .angle-plane { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-400); }
+
+  .angle-value { font-size: 26px; font-weight: 700; color: var(--gray-900); margin: 3px 0 2px; }
+  .angle-value .deg { font-size: 15px; font-weight: 600; color: var(--gray-400); }
+
+  .angle-desc { font-size: 11px; color: var(--gray-700); line-height: 1.4; margin-bottom: 6px; }
+
+  .conf-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  .conf-good  { background: var(--teal-light);  color: var(--teal-dark); }
+  .conf-partial { background: var(--amber-light); color: var(--amber-dark); }
+  .conf-low   { background: var(--coral-light); color: var(--coral-dark); }
+
+  /* Chart */
+  .chart-section {
+    margin: 0.9rem 1.25rem 0;
+    padding: 0.9rem;
+    background: var(--gray-100);
+    border-radius: var(--radius-md);
+  }
+
+  .chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .chart-title { font-size: 12px; font-weight: 700; color: var(--gray-900); }
+
+  .chart-legend { display: flex; gap: 10px; font-size: 10.5px; color: var(--gray-700); }
+
+  .chart-legend span { display: inline-flex; align-items: center; gap: 4px; }
+
+  .chart-legend .sw { width: 10px; height: 3px; border-radius: 2px; display: inline-block; }
+
+  .chart-wrap { width: 100%; background: #fff; border-radius: var(--radius-sm); overflow: hidden; }
+
+  #traceCanvas { width: 100%; height: 180px; display: block; }
+
+  .cycle-label { font-size: 10.5px; color: var(--gray-400); text-align: center; margin-top: 4px; }
+
+  /* Legend / notes */
+  .legend-note {
+    margin: 0.9rem 1.25rem 0;
+    font-size: 11.5px;
+    color: var(--gray-400);
+    line-height: 1.55;
+  }
+
+  .legend-note b { color: var(--gray-700); }
+
+  .branding {
+    text-align: center;
+    padding: 0.5rem;
+    font-size: 11px;
+    color: var(--gray-400);
+    border-top: 0.5px solid var(--gray-200);
+    margin-top: auto;
+  }
+
+  .spacer { height: 1.25rem; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-avatar">GA</div>
+  <div class="header-text">
+    <div class="header-title">Gait Joint Angle Analyzer</div>
+    <div class="header-sub">real-time webcam angle estimate</div>
+  </div>
+  <div class="header-links">
+    <a class="header-link" href="index.html">🧠 Biomechanics game</a>
+    <a class="header-link" href="shoulder-anatomy.html">🦴 Shoulder anatomy</a>
+    <a class="header-link" href="timetable.html">🗓 Timetable builder</a>
+  </div>
+</div>
+
+<div class="disclaimer">
+  <b>Read this before you trust a number.</b> A single camera cannot validly capture all three planes of motion at once — that is a geometry problem, not a coding one. Whichever plane faces the lens reads as a real angle; the other two are reconstructed from the pose model's depth estimate, which is noisy, especially for the small rotations seen at the hip and knee during gait. Treat this as a teaching and screening demo, not a clinical goniometer or a substitute for 3D motion capture / instrumented gait analysis.
+</div>
+
+<div class="chip-row">
+  <div class="chip-label">Camera position</div>
+</div>
+<div class="chip-row" id="viewChipsRow"></div>
+
+<div class="chip-row">
+  <div class="chip-label">Joint</div>
+</div>
+<div class="chip-row" id="jointChipsRow"></div>
+
+<div class="chip-row">
+  <div class="chip-label">Side</div>
+</div>
+<div class="chip-row" id="sideChipsRow"></div>
+
+<div class="video-section">
+  <div class="video-wrap" id="videoWrap">
+    <div class="video-placeholder" id="videoPlaceholder">Click "Start camera" below. Stand side-on (sagittal) or facing the camera (frontal), 2 to 3 metres back, full body in frame, walking in place or across the room.</div>
+    <video id="video" playsinline muted></video>
+    <canvas id="overlay"></canvas>
+    <div class="status-pill" id="statusPill" style="display:none;"></div>
+  </div>
+  <div class="cam-controls">
+    <button class="btn primary" id="startBtn">▶ Start camera</button>
+    <button class="btn danger" id="stopBtn" style="display:none;">■ Stop camera</button>
+    <button class="btn" id="recordBtn" disabled>⏺ Record trace</button>
+    <button class="btn" id="resetBtn">↺ Reset trace</button>
+    <button class="btn" id="exportBtn" disabled>⬇ Export CSV</button>
+  </div>
+</div>
+
+<div class="angle-grid" id="angleGrid"></div>
+
+<div class="chart-section">
+  <div class="chart-header">
+    <div class="chart-title">Angle vs. gait cycle</div>
+    <div class="chart-legend">
+      <span><span class="sw" style="background:var(--teal-mid)"></span>Sagittal</span>
+      <span><span class="sw" style="background:var(--amber-mid)"></span>Frontal</span>
+      <span><span class="sw" style="background:var(--coral-mid)"></span>Transverse</span>
+    </div>
+  </div>
+  <div class="chart-wrap"><canvas id="traceCanvas"></canvas></div>
+  <div class="cycle-label" id="cycleLabel">Cycle boundaries are estimated from ankle crossing, not verified foot-contact events.</div>
+</div>
+
+<div class="legend-note">
+  <b>How the angle is computed:</b> for the selected joint, the three landmarks either side of it (e.g. hip, knee, ankle) are projected onto each anatomical plane and the included angle is measured, then reported as deviation from anatomical neutral (180&deg; for hip/knee, 90&deg; for ankle). This mirrors the logic of marker based motion analysis in principle, but without calibration, multi-camera triangulation, or a Grood&ndash;Suntay joint coordinate system, so it is a simplified approximation, not a validated measurement. All processing happens locally in your browser &mdash; no video or angle data is sent anywhere.
+</div>
+
+<div class="spacer"></div>
+<div class="branding">gait joint angle analyzer &nbsp;·&nbsp; dept. of physiotherapy, integral university</div>
+
+<script type="module">
+import { PoseLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+
+/* ---------- landmark map ---------- */
+const IDX = {
+  shoulder: { L: 11, R: 12 },
+  hip:      { L: 23, R: 24 },
+  knee:     { L: 25, R: 26 },
+  ankle:    { L: 27, R: 28 },
+  heel:     { L: 29, R: 30 },
+  foot:     { L: 31, R: 32 }
+};
+
+const TRIPLETS = {
+  hip:   { p: 'shoulder', j: 'hip',   d: 'knee',  offset: 180, label: 'Hip' },
+  knee:  { p: 'hip',      j: 'knee',  d: 'ankle', offset: 180, label: 'Knee' },
+  ankle: { p: 'knee',     j: 'ankle', d: 'foot',  offset: 90,  label: 'Ankle' }
+};
+
+const PLANE_INFO = {
+  sagittal:   { label: 'Sagittal',   desc: 'Flexion / extension' },
+  frontal:    { label: 'Frontal',    desc: 'Abduction / adduction, varus / valgus' },
+  transverse: { label: 'Transverse', desc: 'Rotation (indicative only)' }
+};
+
+/* ---------- state ---------- */
+let viewMode = 'sagittal';   // 'sagittal' | 'frontal' -> which plane the camera is actually facing
+let joint = 'knee';
+let side = 'R';
+let landmarker = null;
+let running = false;
+let recording = false;
+let lastVideoTime = -1;
+let samples = [];                 // {t, cyclePct, sagittal, frontal, transverse}
+let crossSignal = [];              // recent (t, value) of ankleSel.x - ankleOther.x for cycle detection
+let cycleBoundaries = [];          // timestamps of detected foot-crossing events
+let sessionStart = 0;
+
+/* ---------- DOM ---------- */
+const video = document.getElementById('video');
+const overlay = document.getElementById('overlay');
+const octx = overlay.getContext('2d');
+const videoWrap = document.getElementById('videoWrap');
+const videoPlaceholder = document.getElementById('videoPlaceholder');
+const statusPill = document.getElementById('statusPill');
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const recordBtn = document.getElementById('recordBtn');
+const resetBtn = document.getElementById('resetBtn');
+const exportBtn = document.getElementById('exportBtn');
+const angleGrid = document.getElementById('angleGrid');
+const traceCanvas = document.getElementById('traceCanvas');
+const tctx = traceCanvas.getContext('2d');
+
+/* ---------- chip rows ---------- */
+function renderChips(container, options, current, onPick) {
+  container.innerHTML = '';
+  options.forEach(([key, label]) => {
+    const chip = document.createElement('button');
+    chip.className = 'chip' + (key === current ? ' active' : '');
+    chip.textContent = label;
+    chip.onclick = () => onPick(key);
+    container.appendChild(chip);
+  });
+}
+
+function renderAllChips() {
+  renderChips(document.getElementById('viewChipsRow'),
+    [['sagittal', '◐ Side-on (sagittal)'], ['frontal', '◑ Facing camera (frontal)']],
+    viewMode, (v) => { viewMode = v; renderAllChips(); resetTrace(); });
+
+  renderChips(document.getElementById('jointChipsRow'),
+    [['hip', 'Hip'], ['knee', 'Knee'], ['ankle', 'Ankle']],
+    joint, (v) => { joint = v; renderAllChips(); resetTrace(); });
+
+  renderChips(document.getElementById('sideChipsRow'),
+    [['L', 'Left'], ['R', 'Right']],
+    side, (v) => { side = v; renderAllChips(); resetTrace(); });
+
+  renderAngleCards({ sagittal: null, frontal: null, transverse: null });
+}
+
+/* ---------- angle math ---------- */
+function getPoint(name, world) {
+  const idx = IDX[name][side];
+  return world[idx];
+}
+
+function project(pt, axes) { return { x: pt[axes[0]], y: pt[axes[1]] }; }
+function vec(a, b) { return { x: a.x - b.x, y: a.y - b.y }; }
+
+function angleBetweenDeg(v1, v2) {
+  const dot = v1.x * v2.x + v1.y * v2.y;
+  const m1 = Math.hypot(v1.x, v1.y), m2 = Math.hypot(v2.x, v2.y);
+  if (m1 < 1e-5 || m2 < 1e-5) return null;
+  let c = dot / (m1 * m2);
+  c = Math.max(-1, Math.min(1, c));
+  return Math.acos(c) * 180 / Math.PI;
+}
+
+function jointAngle(jointKey, world, axes) {
+  const t = TRIPLETS[jointKey];
+  const P = getPoint(t.p, world), J = getPoint(t.j, world), D = getPoint(t.d, world);
+  if (!P || !J || !D) return null;
+  const v1 = vec(project(P, axes), project(J, axes));
+  const v2 = vec(project(D, axes), project(J, axes));
+  const interior = angleBetweenDeg(v1, v2);
+  if (interior === null) return null;
+  return +(t.offset - interior).toFixed(1);
+}
+
+function axesFor(plane) {
+  if (plane === 'sagittal') return viewMode === 'sagittal' ? ['x', 'y'] : ['z', 'y'];
+  if (plane === 'frontal')  return viewMode === 'frontal'  ? ['x', 'y'] : ['z', 'y'];
+  return ['x', 'z']; // transverse (horizontal plane) always from depth estimate
+}
+
+function confidenceFor(plane) {
+  if (plane === 'transverse') return 'low';
+  if (plane === viewMode) return 'good';
+  return 'partial';
+}
+
+/* ---------- angle cards ---------- */
+function renderAngleCards(values) {
+  angleGrid.innerHTML = '';
+  ['sagittal', 'frontal', 'transverse'].forEach(plane => {
+    const info = PLANE_INFO[plane];
+    const conf = confidenceFor(plane);
+    const val = values[plane];
+    const card = document.createElement('div');
+    card.className = 'angle-card';
+    card.innerHTML = `
+      <div class="angle-plane">${info.label}</div>
+      <div class="angle-value">${val === null || val === undefined ? '—' : val}<span class="deg">°</span></div>
+      <div class="angle-desc">${TRIPLETS[joint].label} · ${info.desc}</div>
+      <span class="conf-tag conf-${conf}">${conf === 'good' ? 'Good' : conf === 'partial' ? 'Partial' : 'Low confidence'}</span>
+    `;
+    angleGrid.appendChild(card);
+  });
+}
+
+/* ---------- gait cycle detection ---------- */
+function updateCycleDetection(t, world) {
+  const ankleSel = getPoint('ankle', world);
+  const otherSide = side === 'L' ? 'R' : 'L';
+  const ankleOther = world[IDX.ankle[otherSide]];
+  if (!ankleSel || !ankleOther) return;
+  const val = ankleSel.x - ankleOther.x;
+  const prev = crossSignal.length ? crossSignal[crossSignal.length - 1] : null;
+  crossSignal.push({ t, val });
+  if (crossSignal.length > 90) crossSignal.shift();
+
+  if (prev && prev.val < 0 && val >= 0) {
+    const lastBoundary = cycleBoundaries.length ? cycleBoundaries[cycleBoundaries.length - 1] : -Infinity;
+    if (t - lastBoundary > 350) cycleBoundaries.push(t);
+  }
+}
+
+function cyclePercentFor(t) {
+  if (cycleBoundaries.length < 2) return null;
+  for (let i = cycleBoundaries.length - 1; i > 0; i--) {
+    const start = cycleBoundaries[i - 1], end = cycleBoundaries[i];
+    if (t >= start && t <= end) return ((t - start) / (end - start)) * 100;
+  }
+  return null;
+}
+
+/* ---------- trace chart ---------- */
+function resetTrace() {
+  samples = [];
+  crossSignal = [];
+  cycleBoundaries = [];
+  exportBtn.disabled = true;
+  drawTrace();
+}
+
+function drawTrace() {
+  const w = traceCanvas.clientWidth || 400;
+  const h = 180;
+  const targetW = Math.round(w * devicePixelRatio), targetH = Math.round(h * devicePixelRatio);
+  if (traceCanvas.width !== targetW || traceCanvas.height !== targetH) {
+    traceCanvas.width = targetW;
+    traceCanvas.height = targetH;
+  }
+  tctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  tctx.clearRect(0, 0, w, h);
+
+  const padL = 34, padR = 10, padT = 10, padB = 20;
+  const plotW = w - padL - padR, plotH = h - padT - padB;
+  const minY = -60, maxY = 60;
+
+  tctx.strokeStyle = '#e8e7e3';
+  tctx.lineWidth = 1;
+  tctx.fillStyle = '#888780';
+  tctx.font = '10px -apple-system, sans-serif';
+  [minY, 0, maxY].forEach(v => {
+    const y = padT + plotH - ((v - minY) / (maxY - minY)) * plotH;
+    tctx.beginPath(); tctx.moveTo(padL, y); tctx.lineTo(w - padR, y); tctx.stroke();
+    tctx.fillText(v + '°', 2, y + 3);
+  });
+
+  tctx.fillText('0%', padL, h - 6);
+  tctx.fillText('100%', w - padR - 24, h - 6);
+
+  const plotted = samples.filter(s => s.cyclePct !== null);
+  if (plotted.length < 2) return;
+
+  ['sagittal', 'frontal', 'transverse'].forEach(plane => {
+    const color = plane === 'sagittal' ? '#0f8a6e' : plane === 'frontal' ? '#c98a1f' : '#c8532f';
+    tctx.strokeStyle = color;
+    tctx.lineWidth = 1.6;
+    tctx.beginPath();
+    let started = false;
+    plotted.forEach(s => {
+      const val = s[plane];
+      if (val === null || val === undefined) { started = false; return; }
+      const x = padL + (s.cyclePct / 100) * plotW;
+      const y = padT + plotH - ((val - minY) / (maxY - minY)) * plotH;
+      if (!started) { tctx.moveTo(x, y); started = true; } else { tctx.lineTo(x, y); }
+    });
+    tctx.stroke();
+  });
+}
+
+/* ---------- skeleton overlay ---------- */
+const CONNECTIONS = [
+  [11, 12], [11, 23], [12, 24], [23, 24],
+  [11, 13], [13, 15], [12, 14], [14, 16],
+  [23, 25], [25, 27], [27, 29], [27, 31], [29, 31],
+  [24, 26], [26, 28], [28, 30], [28, 32], [30, 32]
+];
+
+function drawSkeleton(landmarks) {
+  const w = overlay.width, h = overlay.height;
+  octx.clearRect(0, 0, w, h);
+  octx.save();
+  octx.translate(w, 0);
+  octx.scale(-1, 1); // mirror to match mirrored video
+
+  octx.strokeStyle = 'rgba(24,95,165,0.85)';
+  octx.lineWidth = 3;
+  CONNECTIONS.forEach(([a, b]) => {
+    const pa = landmarks[a], pb = landmarks[b];
+    if (!pa || !pb) return;
+    octx.beginPath();
+    octx.moveTo(pa.x * w, pa.y * h);
+    octx.lineTo(pb.x * w, pb.y * h);
+    octx.stroke();
+  });
+
+  const highlight = [IDX.shoulder[side], IDX.hip[side], IDX.knee[side], IDX.ankle[side], IDX.foot[side]];
+  octx.fillStyle = '#c8532f';
+  highlight.forEach(i => {
+    const p = landmarks[i];
+    if (!p) return;
+    octx.beginPath();
+    octx.arc(p.x * w, p.y * h, 5, 0, Math.PI * 2);
+    octx.fill();
+  });
+  octx.restore();
+}
+
+/* ---------- model setup ---------- */
+async function setupLandmarker() {
+  statusPill.style.display = 'block';
+  statusPill.textContent = 'Loading pose model…';
+  const vision = await FilesetResolver.forVisionTasks(
+    'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
+  );
+  landmarker = await PoseLandmarker.createFromOptions(vision, {
+    baseOptions: {
+      modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
+      delegate: 'GPU'
+    },
+    runningMode: 'VIDEO',
+    numPoses: 1
+  });
+  statusPill.textContent = 'Model ready';
+}
+
+async function startCamera() {
+  startBtn.disabled = true;
+  try {
+    if (!landmarker) await setupLandmarker();
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+    video.srcObject = stream;
+    await video.play();
+    overlay.width = video.videoWidth;
+    overlay.height = video.videoHeight;
+    videoPlaceholder.style.display = 'none';
+    startBtn.style.display = 'none';
+    stopBtn.style.display = 'inline-block';
+    recordBtn.disabled = false;
+    running = true;
+    sessionStart = performance.now();
+    requestAnimationFrame(loop);
+  } catch (err) {
+    statusPill.textContent = 'Camera error: ' + err.message;
+    startBtn.disabled = false;
+  }
+}
+
+function stopCamera() {
+  running = false;
+  recording = false;
+  recordBtn.textContent = '⏺ Record trace';
+  if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+  video.srcObject = null;
+  videoPlaceholder.style.display = 'flex';
+  startBtn.style.display = 'inline-block';
+  startBtn.disabled = false;
+  stopBtn.style.display = 'none';
+  recordBtn.disabled = true;
+  statusPill.style.display = 'none';
+  octx.clearRect(0, 0, overlay.width, overlay.height);
+}
+
+function loop() {
+  if (!running) return;
+  if (video.currentTime !== lastVideoTime) {
+    lastVideoTime = video.currentTime;
+    const result = landmarker.detectForVideo(video, performance.now());
+    if (result.landmarks && result.landmarks.length && result.worldLandmarks && result.worldLandmarks.length) {
+      statusPill.textContent = recording ? '⏺ Recording' : 'Tracking';
+      drawSkeleton(result.landmarks[0]);
+      const world = result.worldLandmarks[0];
+      const t = performance.now() - sessionStart;
+
+      const sagittal = jointAngle(joint, world, axesFor('sagittal'));
+      const frontal = jointAngle(joint, world, axesFor('frontal'));
+      const transverse = jointAngle(joint, world, axesFor('transverse'));
+      renderAngleCards({ sagittal, frontal, transverse });
+
+      updateCycleDetection(t, world);
+      if (recording) {
+        samples.push({ t, cyclePct: cyclePercentFor(t), sagittal, frontal, transverse });
+        drawTrace();
+      }
+    } else {
+      statusPill.textContent = 'No person detected';
+      octx.clearRect(0, 0, overlay.width, overlay.height);
+    }
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ---------- CSV export ---------- */
+function exportCSV() {
+  const rows = [['time_ms', 'gait_cycle_pct', 'sagittal_deg', 'frontal_deg', 'transverse_deg']];
+  samples.forEach(s => rows.push([
+    s.t.toFixed(0),
+    s.cyclePct === null ? '' : s.cyclePct.toFixed(1),
+    s.sagittal ?? '', s.frontal ?? '', s.transverse ?? ''
+  ]));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `gait-angles-${joint}-${side}-${viewMode}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ---------- wire up ---------- */
+startBtn.addEventListener('click', startCamera);
+stopBtn.addEventListener('click', stopCamera);
+resetBtn.addEventListener('click', resetTrace);
+recordBtn.addEventListener('click', () => {
+  recording = !recording;
+  recordBtn.textContent = recording ? '⏸ Pause recording' : '⏺ Record trace';
+  if (recording) exportBtn.disabled = false;
+});
+exportBtn.addEventListener('click', exportCSV);
+window.addEventListener('resize', drawTrace);
+
+renderAllChips();
+drawTrace();
+
+if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+  videoPlaceholder.textContent = 'Camera access needs a secure context (HTTPS or localhost) and a browser that supports getUserMedia.';
+}
+</script>
+</body>
+</html>
